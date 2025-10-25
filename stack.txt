@@ -1,0 +1,7 @@
+- go 1.25.3
+- Docker
+- Posgres running on a Docker container
+- Swagger for docs
+- Golang Migrate for SQL Migrations
+- SendGrid for sending emails
+- Golang Chi for rate limiter and routing
