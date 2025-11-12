@@ -17,13 +17,14 @@ type application struct {
 
 type serverConfig struct {
 	addr string
-	db     dbConfig
+	db   dbConfig
+	env  string
 }
 
 type dbConfig struct {
 	addr         string
 	maxOpenConns int
-	maxIdleConns  int
+	maxIdleConns int
 	maxIdleTime  string
 }
 
