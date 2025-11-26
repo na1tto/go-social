@@ -7,7 +7,8 @@ import (
 )
 
 var (
-	ErrNotFound = errors.New("resource not found")
+	ErrNotFound    = errors.New("resource not found")
+	StatusConflict = errors.New("resource depracated")
 )
 
 type Storage struct {
