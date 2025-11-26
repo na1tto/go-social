@@ -37,3 +37,15 @@ func writeJsonError(w http.ResponseWriter, status int, message string) error {
 
 	return writeJson(w, status, &envelope{Error: message})
 }
+
+// this is a standarized way of returning json responses across our application
+// this abstracts the writeJson method by allowing it to return any type of data
+// in this way all of the data in the response will be inside a "data" value
+// we did the same thing at the errors.go package for standarazing error responses
+func (app *application) jsonResponse(w http.ResponseWriter, status int, data any) error{
+	type envelope struct{
+		Data any `json:"data"`
+	}
+	
+	return writeJson(w, status, &envelope{Data: data})
+}
