@@ -8,7 +8,7 @@ import (
 type User struct {
 	ID        int64  `json:"id"`
 	UserName  string `json:"username"`
-	Emai      string `json:"email"`
+	Email     string `json:"email"`
 	Password  string `json:"-"` // Password is not marshed
 	CreatedAt string `json:"created_at"`
 }
@@ -22,7 +22,7 @@ func (s *UserStore) Create(ctx context.Context, user *User) error {
 		INSERT INTO users (username, email, password)
 		VALUES ($1, $2, $3) RETURNING id, created_at
 	`
-	
+
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
@@ -30,7 +30,7 @@ func (s *UserStore) Create(ctx context.Context, user *User) error {
 		ctx,
 		query,
 		user.UserName,
-		user.Emai,
+		user.Email,
 		user.Password,
 	).Scan(
 		&user.ID,
@@ -41,4 +41,40 @@ func (s *UserStore) Create(ctx context.Context, user *User) error {
 	}
 
 	return nil
+}
+
+func (s *UserStore) GetById(ctx context.Context, userId int64) (*User, error) {
+	query := `
+		SELECT	u.id, u.username, u.email, u.password, u.created_at
+		FROM users u
+		WHERE u.id = $1
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	user := &User{}
+
+	err := s.db.QueryRowContext(
+		ctx,
+		query,
+		userId,
+	).Scan(
+		&user.ID,
+		&user.UserName,
+		&user.Email,
+		&user.Password,
+		&user.CreatedAt,
+	)
+
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return nil, ErrNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return user, nil
 }

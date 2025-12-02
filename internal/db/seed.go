@@ -140,7 +140,7 @@ func generateUsers(num int) []*repository.User {
 	for i := 0; i < num; i++ {
 		users[i] = &repository.User{
 			UserName: usernames[i%len(usernames)] + fmt.Sprintf("%d", i),
-			Emai:     usernames[i%len(usernames)] + fmt.Sprintf("%d", i) + "@example.com",
+			Email:     usernames[i%len(usernames)] + fmt.Sprintf("%d", i) + "@example.com",
 			Password: "123123",
 		}
 	}
