@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 
@@ -8,29 +9,103 @@ import (
 	repository "github.com/na1tto/go-social/internal/store"
 )
 
+type userKey string
+
+const userCtx userKey = "user"
+
 func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
-	userId, err := strconv.ParseInt(chi.URLParam(r, "userId"), 10, 64)
-	if err != nil {
-		app.badRequestResponse(w, r, err)
+	user := getUserFromContext(r)
+
+	if err := app.jsonResponse(w, http.StatusOK, user); err != nil {
+		app.internalServerError(w, r, err)
 		return
 	}
+}
 
-	ctx := r.Context()
+type FollowUser struct {
+	UserId int64 `json:"user_id"`
+}
 
-	user, err := app.store.Users.GetById(ctx, userId)
-	if err != nil {
+func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request) {
+	followedUser := getUserFromContext(r)
+
+	// TODO: Reverse back to auth user id later
+	var payload FollowUser
+	if err := readJson(w, r, &payload); err != nil {
 		switch err {
-		case repository.ErrNotFound:
-			app.badRequestResponse(w, r, err)
+		case repository.ErrConflict:
+			app.conflictResponse(w, r, err)
 			return
 		default:
 			app.internalServerError(w, r, err)
 			return
 		}
 	}
-	
-	if err := app.jsonResponse(w, http.StatusOK, user); err != nil {
+
+	ctx := r.Context()
+
+	if err := app.store.Followers.Follow(ctx, followedUser.ID, payload.UserId); err != nil {
 		app.internalServerError(w, r, err)
-		return 
+		return
 	}
+
+	if err := app.jsonResponse(w, http.StatusNoContent, nil); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+}
+
+func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Request) {
+	unfollowedUser := getUserFromContext(r)
+
+	// TODO: Reverse back to auth user id later
+	var payload FollowUser
+	if err := readJson(w, r, &payload); err != nil {
+		app.badRequestResponse(w, r, err)
+	}
+
+	ctx := r.Context()
+
+	if err := app.store.Followers.Unfollow(ctx, unfollowedUser.ID, payload.UserId); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	if err := app.jsonResponse(w, http.StatusNoContent, nil); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+}
+
+// same middleware logic that we implemented in the posts handlers
+func (app *application) userContextMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userId, err := strconv.ParseInt(chi.URLParam(r, "userId"), 10, 64)
+		if err != nil {
+			app.badRequestResponse(w, r, err)
+			return
+		}
+
+		ctx := r.Context()
+
+		user, err := app.store.Users.GetById(ctx, userId)
+		if err != nil {
+			switch err {
+			case repository.ErrNotFound:
+				app.badRequestResponse(w, r, err)
+				return
+			default:
+				app.internalServerError(w, r, err)
+				return
+			}
+		}
+
+		ctx = context.WithValue(ctx, userCtx, user)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func getUserFromContext(r *http.Request) *repository.User {
+	user, _ := r.Context().Value(userCtx).(*repository.User)
+	return user
 }
