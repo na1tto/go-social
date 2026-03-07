@@ -19,10 +19,65 @@ type Post struct {
 	UpdatedAt string    `json:"updated_at"`
 	Version   int       `json:"version"`
 	Comments  []Comment `json:"comments"`
+	User      User
+}
+
+type PostWithMetadata struct {
+	Post
+	CommentsCount int `json:"comments_count"`
 }
 
 type PostStore struct {
 	db *sql.DB
+}
+
+func (s *PostStore) GetUserFeed(ctx context.Context, userId int64) ([]PostWithMetadata, error) {
+	query := `
+	  SELECT
+			p.id, p.user_id, p.title, p.content, p.created_at, p.version, p.tags,
+			u.username,
+			COUNT(c.id) AS comments_count
+			from posts p
+			LEFT JOIN comments c ON c.post_id = p.id
+			LEFT JOIN users u ON p.user_id = u.id
+			JOIN followers f ON f.follower_id = p.user_id OR p.user_id = $1
+			WHERE f.user_id = $1 OR p.user_id = $1
+			GROUP BY p.id, u.username
+			ORDER BY p.created_at DESC
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	rows, err := s.db.QueryContext(ctx, query, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var feed []PostWithMetadata
+	for rows.Next() {
+		var p PostWithMetadata
+		err := rows.Scan(
+			&p.ID,
+			&p.UserId,
+			&p.Title,
+			&p.Content,
+			&p.CreatedAt,
+			&p.Version,
+			pq.Array(&p.Tags),
+			&p.User.UserName,
+			&p.CommentsCount,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		feed = append(feed, p)
+	}
+
+	return feed, nil
 }
 
 func (s *PostStore) Create(ctx context.Context, post *Post) error {
@@ -33,7 +88,7 @@ func (s *PostStore) Create(ctx context.Context, post *Post) error {
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
-	
+
 	err := s.db.QueryRowContext(
 		ctx,
 		query,
@@ -62,7 +117,7 @@ func (s *PostStore) GetById(ctx context.Context, postId int64) (*Post, error) {
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
-	
+
 	var post Post
 
 	err := s.db.QueryRowContext(
@@ -99,10 +154,10 @@ func (s *PostStore) Update(ctx context.Context, post *Post) error {
 		WHERE id = $3 AND version = $4
 		RETURNING version
 	`
-	
+
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
-	
+
 	err := s.db.QueryRowContext(
 		ctx,
 		query,
@@ -128,10 +183,10 @@ func (s *PostStore) Delete(ctx context.Context, postId int64) error {
 		DELETE FROM posts
 		WHERE id = $1
 	`
-	
-	ctx, cancel := context.WithTimeout(ctx, time.Duration(time.Second * 5))
+
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(time.Second*5))
 	defer cancel()
-	
+
 	res, err := s.db.ExecContext(ctx, query, postId)
 	if err != nil {
 		return err
