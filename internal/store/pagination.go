@@ -1,0 +1,41 @@
+package repository
+
+import (
+	"net/http"
+	"strconv"
+)
+
+type PaginatedFeedQuery struct {
+	Limit  int    `json:"limit" validate:"gte=1,lte=20"`  // bottom limit is 1 for fetching posts, upper limit is 20 posts
+	Offset int    `json:"offset" validate:"gte=0"`        // initial offset value is 0
+	Sort   string `json:"sort" validate:"oneof=asc desc"` // asc or desc, being handled in the validation layer
+}
+
+func (fq PaginatedFeedQuery) Parse(r *http.Request) (PaginatedFeedQuery, error) {
+	qs := r.URL.Query()
+
+	limit := qs.Get("limit")
+	if limit != "" {
+		l, err := strconv.Atoi(limit)
+		if err != nil {
+			return fq, nil
+		}
+		fq.Limit = l
+	}
+
+	offset := qs.Get("offset")
+	if offset != "" {
+		l, err := strconv.Atoi(offset)
+		if err != nil {
+			return fq, nil
+		}
+		fq.Offset = l
+	}
+
+	sort := qs.Get("sort")
+	if sort != "" {
+		fq.Sort = sort
+	}
+
+	return fq, nil
+}
