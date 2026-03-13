@@ -21,6 +21,10 @@ type createPostPayload struct {
 	Tags    []string `json:"tags"`
 }
 
+type commentPayload struct {
+	Content string `json:"content" validate:"required,max=300"`
+}
+
 func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request) {
 	var payload createPostPayload
 	if err := readJson(w, r, &payload); err != nil {
@@ -137,6 +141,41 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 	if err := app.jsonResponse(w, http.StatusOK, post); err != nil {
 		app.internalServerError(w, r, err)
 	}
+}
+
+func (app *application) createCommentHandler(w http.ResponseWriter, r *http.Request) {
+
+	post := getPostFromCtx(r)
+
+	var payload commentPayload
+
+	if err := readJson(w, r, &payload); err != nil {
+		app.badRequestResponse(w, r, err)
+	}
+
+	if err := Validate.Struct(payload); err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	comment := &repository.Comment{
+		Content: payload.Content,
+		UserId:  40,
+		PostId:  post.ID,
+	}
+
+	ctx := r.Context()
+
+	if err := app.store.Comments.Create(ctx, comment); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	if err := app.jsonResponse(w, http.StatusCreated, comment); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
 }
 
 // middleware for fetching a post in the database
