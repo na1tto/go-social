@@ -3,12 +3,18 @@ package repository
 import (
 	"net/http"
 	"strconv"
+	"strings"
+	"time"
 )
 
 type PaginatedFeedQuery struct {
-	Limit  int    `json:"limit" validate:"gte=1,lte=20"`  // bottom limit is 1 for fetching posts, upper limit is 20 posts
-	Offset int    `json:"offset" validate:"gte=0"`        // initial offset value is 0
-	Sort   string `json:"sort" validate:"oneof=asc desc"` // asc or desc, being handled in the validation layer
+	Limit  int      `json:"limit" validate:"gte=1,lte=20"`  // bottom limit is 1 for fetching posts, upper limit is 20 posts
+	Offset int      `json:"offset" validate:"gte=0"`        // initial offset value is 0
+	Sort   string   `json:"sort" validate:"oneof=asc desc"` // asc or desc, being handled in the validation layer
+	Tags   []string `json:"tags" validate:"max=3"`
+	Search string   `json:"search" validate:"max=100"`
+	Since  string   `json:"since"`
+	Until  string   `json:"until"`
 }
 
 func (fq PaginatedFeedQuery) Parse(r *http.Request) (PaginatedFeedQuery, error) {
@@ -37,5 +43,34 @@ func (fq PaginatedFeedQuery) Parse(r *http.Request) (PaginatedFeedQuery, error) 
 		fq.Sort = sort
 	}
 
+	tags := qs.Get("tags")
+	if tags != "" {
+		fq.Tags = strings.Split(tags, ",")
+	}
+
+	search := qs.Get("search")
+	if search != "" {
+		fq.Search = search
+	}
+
+	since := qs.Get("since")
+	if since != "" {
+		fq.Since = parseTime(since)
+	}
+
+	until := qs.Get("until")
+	if until != "" {
+		fq.Until = parseTime(until)
+	}
+
 	return fq, nil
+}
+
+func parseTime(s string) string {
+	t, err := time.Parse(time.DateTime, s)
+	if err != nil {
+		return ""
+	}
+
+	return t.Format(time.DateTime)
 }
