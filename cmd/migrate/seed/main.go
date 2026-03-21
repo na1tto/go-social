@@ -15,10 +15,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	
+
 	defer conn.Close()
-	
+
 	store := repository.NewStorage(conn)
-	
+
 	db.Seed(store)
 }

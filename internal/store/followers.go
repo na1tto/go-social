@@ -27,12 +27,12 @@ func (s *FollowerStore) Follow(ctx context.Context, followerId, userId int64) er
 	defer cancel()
 
 	_, err := s.db.ExecContext(ctx, query, userId, followerId)
-	if err != nil{
-		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505"{
+	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
 			return ErrConflict
 		}
 	}
-	
+
 	return nil
 }
 

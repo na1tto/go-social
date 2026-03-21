@@ -9,7 +9,7 @@ import (
 
 var Validate *validator.Validate
 
-func init(){
+func init() {
 	Validate = validator.New(validator.WithRequiredStructEnabled())
 }
 
@@ -42,10 +42,10 @@ func writeJsonError(w http.ResponseWriter, status int, message string) error {
 // this abstracts the writeJson method by allowing it to return any type of data
 // in this way all of the data in the response will be inside a "data" value
 // we did the same thing at the errors.go package for standarazing error responses
-func (app *application) jsonResponse(w http.ResponseWriter, status int, data any) error{
-	type envelope struct{
+func (app *application) jsonResponse(w http.ResponseWriter, status int, data any) error {
+	type envelope struct {
 		Data any `json:"data"`
 	}
-	
+
 	return writeJson(w, status, &envelope{Data: data})
 }

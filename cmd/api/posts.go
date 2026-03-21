@@ -25,6 +25,19 @@ type commentPayload struct {
 	Content string `json:"content" validate:"required,max=300"`
 }
 
+// CreatePost godoc
+//
+//	@Summary		Creates a post
+//	@Description	Creates a post in the database
+//	@Tags			Posts
+//	@Accept			json
+//	@Produce		json
+//	@Param			credentials	body		repository.Post	true	"Post Infos"
+//	@Success		201			{object}	repository.Post	"Success"
+//	@Failure		400			{object}	error
+//	@Failure		500			{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/posts/ [post]
 func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request) {
 	var payload createPostPayload
 	if err := readJson(w, r, &payload); err != nil {
@@ -59,6 +72,20 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 
 }
 
+// GetPost godoc
+//
+//	@Summary		Retrieves a Post
+//	@Description	Retrieves a post by ID
+//	@Tags			Posts
+//	@Accept			json
+//	@Produce		json
+//	@Param			postId	path		int				true	"Post ID"
+//	@Success		201		{object}	repository.Post	"Success"
+//	@Failure		400		{object}	error
+//	@Failure		404		{object}	error	"Post not found"
+//	@Failure		500		{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/posts/{postId} [get]
 func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 	post := getPostFromCtx(r)
 

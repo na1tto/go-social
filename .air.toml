@@ -15,13 +15,13 @@ args_bin = ["hello", "world"]
 # Watch these filename extensions.
 include_ext = ["go", "tpl", "tmpl", "html"]
 # Ignore these filename extensions or directories.
-exclude_dir = ["assets", "tmp", "vendor", "frontend/node_modules", "bin"]
+exclude_dir = ["assets", "tmp", "vendor", "frontend/node_modules", "bin", "docs"]
 # Watch these directories if you specified.
 include_dir = []
 # Watch these files.
 include_file = []
 # Exclude files.
-exclude_file = []
+exclude_file = ["docs/docs.go", "docs/swagger.json", "docs/swagger.yaml"]
 # Exclude specific regular expressions.
 exclude_regex = ["_test\\.go"]
 # Exclude unchanged files.
@@ -46,6 +46,7 @@ kill_delay = 500 # nanosecond
 rerun = false
 # Delay after each execution
 rerun_delay = 500
+pre_cmd = ["make gen-docs"]
 
 [log]
 # Show log time
