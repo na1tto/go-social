@@ -84,7 +84,7 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 
 // UnollowUser godoc
 //
-//	@Summary		Unollows a User
+//	@Summary		Unfollows a User
 //	@Description	Unollows a user by ID
 //	@Tags			Users
 //	@Accept			json

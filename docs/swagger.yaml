@@ -1,5 +1,14 @@
 basePath: /v1
 definitions:
+  api.UpdatePostPayload:
+    properties:
+      content:
+        maxLength: 1000
+        type: string
+      title:
+        maxLength: 100
+        type: string
+    type: object
   github_com_na1tto_go-social_internal_store.Comment:
     properties:
       content:
@@ -127,6 +136,46 @@ paths:
       summary: Retrieves a Post
       tags:
       - Posts
+    patch:
+      consumes:
+      - application/json
+      description: Updates a post by ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: postId
+        required: true
+        type: integer
+      - description: Fields to Update
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/api.UpdatePostPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/github_com_na1tto_go-social_internal_store.Post'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Post not found
+          schema: {}
+        "409":
+          description: Version conflict
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Updates a post
+      tags:
+      - Posts
   /users/{id}:
     get:
       consumes:
@@ -214,7 +263,7 @@ paths:
           schema: {}
       security:
       - ApiKeyAuth: []
-      summary: Unollows a User
+      summary: Unfollows a User
       tags:
       - Users
 securityDefinitions:

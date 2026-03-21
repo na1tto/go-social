@@ -128,11 +128,28 @@ func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request
 	w.WriteHeader(http.StatusNoContent) // we don't want to return any data via json here
 }
 
+// these are the data that the user can send to update their posts
 type UpdatePostPayload struct {
 	Title   *string `json:"title" validate:"omitempty,max=100"`
 	Content *string `json:"content" validate:"omitempty,max=1000"`
 }
 
+// GetPost godoc
+//
+//	@Summary		Updates a post
+//	@Description	Updates a post by ID
+//	@Tags			Posts
+//	@Accept			json
+//	@Produce		json
+//	@Param			postId	path		int					true	"Post ID"
+//	@Param			payload	body		UpdatePostPayload	true	"Fields to Update"
+//	@Success		200		{object}	repository.Post		"Success"
+//	@Failure		400		{object}	error
+//	@Failure		404		{object}	error	"Post not found"
+//	@Failure		409		{object}	error	"Version conflict"
+//	@Failure		500		{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/posts/{postId} [patch]
 func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request) {
 	post := getPostFromCtx(r)
 
