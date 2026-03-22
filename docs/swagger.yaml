@@ -9,6 +9,14 @@ definitions:
         maxLength: 100
         type: string
     type: object
+  api.commentPayload:
+    properties:
+      content:
+        maxLength: 300
+        type: string
+    required:
+    - content
+    type: object
   github_com_na1tto_go-social_internal_store.Comment:
     properties:
       content:
@@ -74,6 +82,20 @@ info:
   termsOfService: http://swagger.io/terms/
   title: Go-Social API
 paths:
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: Fetches the user feed with flags for filtering
+      produces:
+      - application/json
+      responses:
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Shows the server health
+      tags:
+      - Health
   /posts/:
     post:
       consumes:
@@ -105,6 +127,32 @@ paths:
       tags:
       - Posts
   /posts/{postId}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a post by ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: postId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Success
+        "404":
+          description: Post not found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Deletes a Post
+      tags:
+      - Posts
     get:
       consumes:
       - application/json
@@ -174,6 +222,40 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Updates a post
+      tags:
+      - Posts
+    post:
+      consumes:
+      - application/json
+      description: Comments on a post by its ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: postId
+        required: true
+        type: integer
+      - description: Comment Field
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/api.commentPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Success
+          schema:
+            $ref: '#/definitions/github_com_na1tto_go-social_internal_store.Comment'
+        "400":
+          description: Bad Request
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Creates a Comment
       tags:
       - Posts
   /users/{id}:
@@ -264,6 +346,55 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Unfollows a User
+      tags:
+      - Users
+  /users/feed:
+    get:
+      consumes:
+      - application/json
+      description: Fetches the user feed with flags for filtering
+      parameters:
+      - description: Search filter for the feed
+        in: query
+        name: search
+        type: string
+      - description: Field for sorting data
+        in: query
+        name: sort
+        type: string
+      - description: Field for pagination limit
+        in: query
+        name: limit
+        type: string
+      - description: Field for pagination offset
+        in: query
+        name: offset
+        type: string
+      - description: Field for filtering by tags
+        in: query
+        name: tags
+        type: string
+      - description: Field for filtering until a date
+        in: query
+        name: since
+        type: string
+      - description: Field for filtering since a date
+        in: query
+        name: until
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_na1tto_go-social_internal_store.Post'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Fetches a feed for a user
       tags:
       - Users
 securityDefinitions:

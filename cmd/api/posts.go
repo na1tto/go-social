@@ -21,10 +21,6 @@ type createPostPayload struct {
 	Tags    []string `json:"tags"`
 }
 
-type commentPayload struct {
-	Content string `json:"content" validate:"required,max=300"`
-}
-
 // CreatePost godoc
 //
 //	@Summary		Creates a post
@@ -103,6 +99,19 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// DeletePost godoc
+//
+//	@Summary		Deletes a Post
+//	@Description	Deletes a post by ID
+//	@Tags			Posts
+//	@Accept			json
+//	@Produce		json
+//	@Param			postId	path	int	true	"Post ID"
+//	@Success		204		"Success"
+//	@Failure		404		{object}	error	"Post not found"
+//	@Failure		500		{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/posts/{postId} [delete]
 func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "postId")
 	id, err := strconv.ParseInt(idParam, 10, 64)
@@ -134,7 +143,7 @@ type UpdatePostPayload struct {
 	Content *string `json:"content" validate:"omitempty,max=1000"`
 }
 
-// GetPost godoc
+// UpdatePost godoc
 //
 //	@Summary		Updates a post
 //	@Description	Updates a post by ID
@@ -187,6 +196,24 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
+type commentPayload struct {
+	Content string `json:"content" validate:"required,max=300"`
+}
+
+// UpdatePost godoc
+//
+//	@Summary		Creates a Comment
+//	@Description	Comments on a post by its ID
+//	@Tags			Posts
+//	@Accept			json
+//	@Produce		json
+//	@Param			postId	path		int					true	"Post ID"
+//	@Param			payload	body		commentPayload		true	"Comment Field"
+//	@Success		201		{object}	repository.Comment	"Success"
+//	@Failure		400		{object}	error
+//	@Failure		500		{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/posts/{postId} [post]
 func (app *application) createCommentHandler(w http.ResponseWriter, r *http.Request) {
 
 	post := getPostFromCtx(r)

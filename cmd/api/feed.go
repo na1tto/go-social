@@ -6,6 +6,23 @@ import (
 	repository "github.com/na1tto/go-social/internal/store"
 )
 
+// getUserFeed godoc
+//
+//	@Summary		Fetches a feed for a user
+//	@Description	Fetches the user feed with flags for filtering
+//	@Tags			Users
+//	@Accept			json
+//	@Produce		json
+//	@Param			search	query		string	false	"Search filter for the feed"
+//	@Param			sort	query		string	false	"Field for sorting data"
+//	@Param			limit	query		string	false	"Field for pagination limit"
+//	@Param			offset	query		string	false	"Field for pagination offset"
+//	@Param			tags	query		string	false	"Field for filtering by tags"
+//	@Param			since	query		string	false	"Field for filtering until a date"
+//	@Param			until	query		string	false	"Field for filtering since a date"
+//	@Success		200		{array}		repository.Post
+//	@Failure		500		{object}	error
+//	@Router			/users/feed [get]
 func (app *application) getUserFeedHandler(w http.ResponseWriter, r *http.Request) {
 	fq := repository.PaginatedFeedQuery{
 		Limit:  10,
