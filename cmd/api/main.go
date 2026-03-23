@@ -16,7 +16,7 @@ const version = "0.0.1"
 
 //	@contact.name	Luiz (na1tto)
 //	@contact.url	https://github.com/na1tto
-//	@contact.email	eduardo3245.ss@gmai.com
+//	@contact.email	eduardo3245.ss@gmail.com
 
 //	@license.name	Apache 2.0
 //	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
