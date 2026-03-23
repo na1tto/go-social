@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"go.uber.org/zap"
 
 	//"github.com/na1tto/go-social/docs"
 	"github.com/na1tto/go-social/docs"
@@ -18,6 +18,7 @@ import (
 type application struct {
 	config serverConfig
 	store  repository.Storage
+	logger *zap.SugaredLogger
 }
 
 type serverConfig struct {
@@ -99,7 +100,7 @@ func (app *application) run(mux http.Handler) error {
 		IdleTimeout:  time.Minute,
 	}
 
-	log.Printf("server has started at port %s", app.config.addr)
+	app.logger.Infow("server has started at port", "add", app.config.addr, "env", app.config.env)
 
 	return srv.ListenAndServe()
 }

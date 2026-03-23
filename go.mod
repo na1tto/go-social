@@ -29,6 +29,8 @@ require (
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/stretchr/testify v1.10.0 // indirect
 	github.com/swaggo/files/v2 v2.0.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
+	go.uber.org/zap v1.27.1 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/crypto v0.49.0 // indirect
 	golang.org/x/mod v0.34.0 // indirect

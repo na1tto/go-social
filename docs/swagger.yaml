@@ -72,9 +72,9 @@ definitions:
     type: object
 info:
   contact:
-    email: support@swagger.io
+    email: eduardo3245.ss@gmai.com
     name: Luiz (na1tto)
-    url: http://www.swagger.io/support
+    url: https://github.com/na1tto
   description: This is my swagger documentation for the Go-Social Project!
   license:
     name: Apache 2.0

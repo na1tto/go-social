@@ -1,12 +1,11 @@
 package main
 
 import (
-	"log"
-
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/na1tto/go-social/internal/db"
 	"github.com/na1tto/go-social/internal/env"
 	repository "github.com/na1tto/go-social/internal/store"
+	"go.uber.org/zap"
 )
 
 const version = "0.0.1"
@@ -41,6 +40,11 @@ func main() {
 		env: env.GetString("ENV", "development"),
 	}
 
+	//logger
+	logger := zap.Must(zap.NewProduction()).Sugar()
+	defer logger.Sync() //flushes any buffered log entries
+
+	//db
 	db, err := db.New(
 		cfg.db.addr,
 		cfg.db.maxOpenConns,
@@ -49,19 +53,20 @@ func main() {
 	)
 
 	if err != nil {
-		log.Panic(err)
+		logger.Fatal(err)
 	}
 
 	defer db.Close()
-	log.Printf("database connection pool stablished")
+	logger.Info("database connection pool stablished")
 
 	store := repository.NewStorage(db)
 
 	app := &application{
 		config: cfg,
 		store:  store,
+		logger: logger,
 	}
 
 	mux := app.mount()
-	log.Fatal(app.run(mux))
+	logger.Fatal(app.run(mux))
 }

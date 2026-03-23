@@ -12,8 +12,8 @@ const docTemplate = `{
         "termsOfService": "http://swagger.io/terms/",
         "contact": {
             "name": "Luiz (na1tto)",
-            "url": "http://www.swagger.io/support",
-            "email": "support@swagger.io"
+            "url": "https://github.com/na1tto",
+            "email": "eduardo3245.ss@gmai.com"
         },
         "license": {
             "name": "Apache 2.0",
