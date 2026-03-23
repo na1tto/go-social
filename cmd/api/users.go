@@ -132,7 +132,7 @@ func (app *application) userContextMiddleware(next http.Handler) http.Handler {
 		if err != nil {
 			switch err {
 			case repository.ErrNotFound:
-				app.badRequestResponse(w, r, err)
+				app.notFoundResponse(w, r, err)
 				return
 			default:
 				app.internalServerError(w, r, err)
