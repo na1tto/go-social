@@ -16,8 +16,8 @@ const version = "0.0.1"
 //	@termsOfService	http://swagger.io/terms/
 
 //	@contact.name	Luiz (na1tto)
-//	@contact.url	http://www.swagger.io/support
-//	@contact.email	support@swagger.io
+//	@contact.url	https://github.com/na1tto
+//	@contact.email	eduardo3245.ss@gmai.com
 
 //	@license.name	Apache 2.0
 //	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
