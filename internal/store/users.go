@@ -3,14 +3,36 @@ package repository
 import (
 	"context"
 	"database/sql"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
-	ID        int64  `json:"id"`
-	UserName  string `json:"username"`
-	Email     string `json:"email"`
-	Password  string `json:"-"` // Password is not marshed
-	CreatedAt string `json:"created_at"`
+	ID        int64    `json:"id"`
+	UserName  string   `json:"username"`
+	Email     string   `json:"email"`
+	Password  password `json:"-"` // Password is not marshed
+	CreatedAt string   `json:"created_at"`
+}
+
+// this type is encapsulated because we are going to need some methods
+// related to hashing and comparing passwords for the authentication
+type password struct {
+	text *string
+	hash []byte
+}
+
+func (p *password) Set(text string) error {
+	hash, err := bcrypt.GenerateFromPassword([]byte(text), bcrypt.DefaultCost)
+
+	if err != nil {
+		return err
+	}
+
+	p.text = &text
+	p.hash = hash
+
+	return nil
 }
 
 type UserStore struct {
@@ -77,4 +99,12 @@ func (s *UserStore) GetById(ctx context.Context, userId int64) (*User, error) {
 	}
 
 	return user, nil
+}
+
+func (s *UserStore) CreateAndInvite(ctx context.Context, user *User, token string) error {
+	// transaction wrapper
+	// create the user
+	// create the user invite
+
+	return nil
 }

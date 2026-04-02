@@ -13,7 +13,7 @@ const docTemplate = `{
         "contact": {
             "name": "Luiz (na1tto)",
             "url": "https://github.com/na1tto",
-            "email": "eduardo3245.ss@gmai.com"
+            "email": "eduardo3245.ss@gmail.com"
         },
         "license": {
             "name": "Apache 2.0",
