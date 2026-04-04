@@ -20,5 +20,5 @@ func main() {
 
 	store := repository.NewStorage(conn)
 
-	db.Seed(store)
+	db.Seed(store, conn)
 }
