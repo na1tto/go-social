@@ -144,7 +144,7 @@ func generateUsers(num int) []*repository.User {
 			UserName: usernames[i%len(usernames)] + fmt.Sprintf("%d", i),
 			Email:    usernames[i%len(usernames)] + fmt.Sprintf("%d", i) + "@example.com",
 		}
-		users[i].Password.Set("123123")
+		users[i].Password.Set("123123") // default seed password
 	}
 
 	return users
