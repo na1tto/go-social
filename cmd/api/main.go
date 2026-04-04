@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/na1tto/go-social/internal/db"
 	"github.com/na1tto/go-social/internal/env"
@@ -38,6 +40,9 @@ func main() {
 			maxIdleTime:  env.GetString("DB_MAX_IDLE_TIME", "15m"),
 		},
 		env: env.GetString("ENV", "development"),
+		mail: mailConfig{
+			exp: time.Hour * 24 * 3
+		}
 	}
 
 	//logger
