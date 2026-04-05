@@ -14,6 +14,11 @@ func init() {
 }
 
 func writeJson(w http.ResponseWriter, status int, data any) error {
+	if status == http.StatusNoContent {
+		w.WriteHeader(status)
+		return nil
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	return json.NewEncoder(w).Encode(data)
