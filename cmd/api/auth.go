@@ -15,18 +15,23 @@ type RegistredUserPayload struct {
 	Password string `json:"password" validate:"required,min=3,max=72"`
 }
 
+type UserWithToken struct {
+	*repository.User
+	Token string `json:"token"`
+}
+
 // registerUserHandler godoc
 //
-// @Summary 							Registers a user
-// @Description 					Registers a user
-// @Tags									authentication
-// @Accept 								json
-// @Produce								json
-// @Param	payload body		RegisterUserPayload	true	"User credentials"
-// @Success	201	{object}	repository.User	"User
-// @Failure 400	{object} 	error
-// @Failure 500 {object} 	error
-// @Router 								/authentication/user [post]
+//	@Summary		Registers a user
+//	@Description	Registers a user
+//	@Tags			Authentication
+//	@Accept			json
+//	@Produce		json
+//	@Param			payload	body		RegistredUserPayload	true	"User credentials"
+//	@Success		201		{object}	UserWithToken			"User
+//	@Failure		400		{object}	error
+//	@Failure		500		{object}	error
+//	@Router			/authentication/user [post]
 func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Request) {
 	var payload RegistredUserPayload
 	if err := readJson(w, r, &payload); err != nil {
@@ -69,9 +74,14 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	userWithToken := UserWithToken{
+		User:  user,
+		Token: plainToken,
+	}
+
 	// mail
 
-	if err := writeJson(w, http.StatusCreated, user); err != nil {
+	if err := app.jsonResponse(w, http.StatusCreated, userWithToken); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}

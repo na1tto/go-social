@@ -41,8 +41,8 @@ func main() {
 		},
 		env: env.GetString("ENV", "development"),
 		mail: mailConfig{
-			exp: time.Hour * 24 * 3
-		}
+			exp: time.Hour * 24 * 3,
+		},
 	}
 
 	//logger
