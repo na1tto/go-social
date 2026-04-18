@@ -11,6 +11,7 @@ import (
 
 	//"github.com/na1tto/go-social/docs"
 	"github.com/na1tto/go-social/docs"
+	"github.com/na1tto/go-social/internal/mailer"
 	repository "github.com/na1tto/go-social/internal/store"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
@@ -19,18 +20,26 @@ type application struct {
 	config serverConfig
 	store  repository.Storage
 	logger *zap.SugaredLogger
+	mailer mailer.Client
 }
 
 type serverConfig struct {
-	addr   string
-	db     dbConfig
-	env    string
-	apiURL string
-	mail   mailConfig
+	addr        string
+	db          dbConfig
+	env         string
+	apiURL      string
+	mail        mailConfig
+	frontendURL string
 }
 
 type mailConfig struct {
-	exp time.Duration
+	exp       time.Duration
+	fromEmail string
+	sendgrid  sendGridConfig
+}
+
+type sendGridConfig struct {
+	apiKey string
 }
 
 type dbConfig struct {
