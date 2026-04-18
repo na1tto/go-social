@@ -36,6 +36,13 @@ type mailConfig struct {
 	exp       time.Duration
 	fromEmail string
 	sendgrid  sendGridConfig
+	mailTrap  mailTrapConfig
+}
+
+type mailTrapConfig struct {
+	apiKey          string
+	sandboxUsername string
+	password        string
 }
 
 type sendGridConfig struct {

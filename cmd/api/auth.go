@@ -93,7 +93,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 
 	// mail
 
-	err := app.mailer.Send(mailer.UserWelcomeTemplate, user.UserName, user.Email, vars, !isProdEnv)
+	_, err := app.mailer.Send(mailer.UserWelcomeTemplate, user.UserName, user.Email, vars, !isProdEnv)
 	if err != nil {
 		app.logger.Errorw("error sending welcome email", "error", err)
 
