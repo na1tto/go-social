@@ -4,6 +4,7 @@ import (
 	"time"
 
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/na1tto/go-social/internal/auth"
 	"github.com/na1tto/go-social/internal/db"
 	"github.com/na1tto/go-social/internal/env"
 	"github.com/na1tto/go-social/internal/mailer"
@@ -59,6 +60,11 @@ func main() {
 				user: env.GetString("AUTH_BASIC_USER", "admin"),
 				pass: env.GetString("AUTH_BASIC_PASS", "admin"),
 			},
+			token: tokenConfig{
+				secret: env.GetString("AUTH_TOKEN_SECRET", "example"),
+				exp:    time.Hour * 25 * 3, //3 days
+				iss:    "GoSocial",
+			},
 		},
 	}
 
@@ -86,11 +92,19 @@ func main() {
 	// mailer := mailer.NewSendgrid(cfg.mail.sendgrid.apiKey, cfg.mail.fromEmail)
 	mailTrap, err := mailer.NewMailTrapClient(cfg.mail.mailTrap.apiKey, cfg.mail.fromEmail, cfg.mail.mailTrap.sandboxUsername, cfg.mail.mailTrap.password)
 
+	// instatiate the authenticator
+	jwtAuth := auth.NewJWTAuthenticator(
+		cfg.auth.token.secret,
+		cfg.auth.token.iss,
+		cfg.auth.token.iss,
+	)
+
 	app := &application{
-		config: cfg,
-		store:  store,
-		logger: logger,
-		mailer: mailTrap,
+		config:        cfg,
+		store:         store,
+		logger:        logger,
+		mailer:        mailTrap,
+		authenticator: jwtAuth,
 	}
 
 	mux := app.mount()

@@ -1,5 +1,18 @@
 basePath: /v1
 definitions:
+  api.CreateUserTokenPayload:
+    properties:
+      email:
+        maxLength: 255
+        type: string
+      password:
+        maxLength: 72
+        minLength: 3
+        type: string
+    required:
+    - email
+    - password
+    type: object
   api.RegistredUserPayload:
     properties:
       email:
@@ -116,6 +129,37 @@ info:
   termsOfService: http://swagger.io/terms/
   title: Go-Social API
 paths:
+  /authentication/token:
+    post:
+      consumes:
+      - application/json
+      description: creates a token for a user
+      parameters:
+      - description: User credentials
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/api.CreateUserTokenPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Creates a token
+      tags:
+      - authentication
   /authentication/user:
     post:
       consumes:

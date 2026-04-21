@@ -12,16 +12,18 @@ import (
 
 	//"github.com/na1tto/go-social/docs"
 	"github.com/na1tto/go-social/docs"
+	"github.com/na1tto/go-social/internal/auth"
 	"github.com/na1tto/go-social/internal/mailer"
 	repository "github.com/na1tto/go-social/internal/store"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 type application struct {
-	config serverConfig
-	store  repository.Storage
-	logger *zap.SugaredLogger
-	mailer mailer.Client
+	config        serverConfig
+	store         repository.Storage
+	logger        *zap.SugaredLogger
+	mailer        mailer.Client
+	authenticator auth.Authenticator
 }
 
 type serverConfig struct {
@@ -36,6 +38,13 @@ type serverConfig struct {
 
 type authConfig struct {
 	basic basicConfig
+	token tokenConfig
+}
+
+type tokenConfig struct {
+	secret string
+	exp    time.Duration
+	iss    string
 }
 
 type basicConfig struct {
