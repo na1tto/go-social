@@ -10,7 +10,7 @@ import (
 type Follower struct {
 	UserId     int64  `json:"user_id"`
 	FollowerId int64  `json:"follower_id"`
-	created_at string `json:"created_at"`
+	Created_at string `json:"created_at"`
 }
 
 type FollowerStore struct {
