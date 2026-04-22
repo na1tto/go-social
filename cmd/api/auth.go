@@ -163,7 +163,7 @@ func (app *application) createTokenHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// checa se a senha fornecida corresponde ao hash armazenada no banco de dados
+	// checks if the payload password matches the users hashed password in the database
 	matches, err := user.Password.Matches(payload.Password)
 	if err != nil {
 		app.internalServerError(w, r, err)
