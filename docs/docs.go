@@ -34,7 +34,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "authentication"
+                    "Authentication"
                 ],
                 "summary": "Creates a token",
                 "parameters": [
@@ -425,6 +425,11 @@ const docTemplate = `{
         },
         "/users/feed": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Fetches the user feed with flags for filtering",
                 "consumes": [
                     "application/json"

@@ -22,6 +22,7 @@ import (
 //	@Param			until	query		string	false	"Field for filtering since a date"
 //	@Success		200		{array}		repository.Post
 //	@Failure		500		{object}	error
+//	@Security		ApiKeyAuth
 //	@Router			/users/feed [get]
 func (app *application) getUserFeedHandler(w http.ResponseWriter, r *http.Request) {
 	fq := repository.PaginatedFeedQuery{

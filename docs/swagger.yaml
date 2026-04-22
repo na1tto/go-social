@@ -159,7 +159,7 @@ paths:
           schema: {}
       summary: Creates a token
       tags:
-      - authentication
+      - Authentication
   /authentication/user:
     post:
       consumes:
@@ -527,6 +527,8 @@ paths:
         "500":
           description: Internal Server Error
           schema: {}
+      security:
+      - ApiKeyAuth: []
       summary: Fetches a feed for a user
       tags:
       - Users

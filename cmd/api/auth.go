@@ -126,7 +126,7 @@ type CreateUserTokenPayload struct {
 //
 //	@Summary		Creates a token
 //	@Description	creates a token for a user
-//	@Tags			authentication
+//	@Tags			Authentication
 //	@Accept			json
 //	@Produce		json
 //	@Param			payload					body		CreateUserTokenPayload	true	"User credentials"
@@ -167,6 +167,7 @@ func (app *application) createTokenHandler(w http.ResponseWriter, r *http.Reques
 		"iat": time.Now().Unix(),
 		"nbf": time.Now().Unix(),
 		"iss": app.config.auth.token.iss,
+		"aud": app.config.auth.token.iss,
 	}
 	token, err := app.authenticator.GenerateToken(claims)
 	if err != nil {
