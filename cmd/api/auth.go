@@ -54,7 +54,10 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		Email:    payload.Email,
 	}
 	// hash the user password using bcrypt in the storage layer setting it to the model
-	user.Password.Set(payload.Password)
+	if err := user.Password.Set(payload.Password); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
 
 	ctx := r.Context()
 
@@ -157,6 +160,17 @@ func (app *application) createTokenHandler(w http.ResponseWriter, r *http.Reques
 		default:
 			app.internalServerError(w, r, err)
 		}
+		return
+	}
+
+	// checa se a senha fornecida corresponde ao hash armazenada no banco de dados
+	matches, err := user.Password.Matches(payload.Password)
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+	if !matches {
+		app.unauthorizedErrorResponse(w, r, repository.ErrInvalidCredentials)
 		return
 	}
 

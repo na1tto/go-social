@@ -12,8 +12,9 @@ import (
 )
 
 var (
-	ErrDuplicateEmail    = errors.New("email already exists")
-	ErrDuplicateUsername = errors.New("username already exists")
+	ErrDuplicateEmail     = errors.New("email already exists")
+	ErrDuplicateUsername  = errors.New("username already exists")
+	ErrInvalidCredentials = errors.New("invalid credentials")
 )
 
 type User struct {
@@ -43,6 +44,20 @@ func (p *password) Set(text string) error {
 	p.hash = hash
 
 	return nil
+}
+
+func (p *password) Matches(text string) (bool, error) {
+	err := bcrypt.CompareHashAndPassword(p.hash, []byte(text))
+	if err != nil {
+		switch err {
+		case bcrypt.ErrMismatchedHashAndPassword:
+			return false, nil
+		default:
+			return false, err
+		}
+	}
+
+	return true, nil
 }
 
 type UserStore struct {
