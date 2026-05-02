@@ -119,8 +119,8 @@ func (app *application) mount() http.Handler {
 
 				r.Get("/", app.getPostHandler)
 				r.Post("/", app.createCommentHandler)
-				r.Delete("/", app.deletePostHandler)
-				r.Patch("/", app.updatePostHandler)
+				r.Delete("/", app.CheckPostOwnership("admin", app.deletePostHandler))
+				r.Patch("/", app.CheckPostOwnership("moderator", app.updatePostHandler))
 			})
 		})
 

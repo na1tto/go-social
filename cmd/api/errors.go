@@ -14,6 +14,12 @@ func (app *application) internalServerError(w http.ResponseWriter, r *http.Reque
 	writeJsonError(w, http.StatusInternalServerError, "the server encountered a problem")
 }
 
+func (app *application) forbiddenResponse(w http.ResponseWriter, r *http.Request, err error) {
+	app.logger.Warnw("forbidden", "method", r.Method, "path", r.URL.Path, "error", err.Error())
+
+	writeJson(w, http.StatusUnauthorized, "forbidden")
+}
+
 func (app *application) badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
 	app.logger.Warnf("bad request", "method", r.Method, "path", r.URL.Path, "error", err.Error())
 
