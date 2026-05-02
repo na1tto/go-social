@@ -109,9 +109,7 @@ var comments = []string{
 func Seed(store repository.Storage, db *sql.DB) {
 	ctx := context.Background()
 
-	role, _ := store.Roles.GetByName(ctx, "user")
-
-	users := generateUsers(100, role.ID)
+	users := generateUsers(100)
 	tx, _ := db.BeginTx(ctx, nil)
 	for _, user := range users {
 		if err := store.Users.Create(ctx, tx, user); err != nil {
@@ -138,14 +136,16 @@ func Seed(store repository.Storage, db *sql.DB) {
 	log.Println("The seeding was completed!")
 }
 
-func generateUsers(num int, roleID int64) []*repository.User {
+func generateUsers(num int) []*repository.User {
 	users := make([]*repository.User, num)
 
 	for i := 0; i < num; i++ {
 		users[i] = &repository.User{
 			UserName: usernames[i%len(usernames)] + fmt.Sprintf("%d", i),
 			Email:    usernames[i%len(usernames)] + fmt.Sprintf("%d", i) + "@example.com",
-			RoleID:   roleID,
+			Role: repository.Role{
+				Name: "user",
+			},
 		}
 		users[i].Password.Set("123123") // default seed password
 	}
