@@ -115,12 +115,12 @@ func (app *application) mount() http.Handler {
 
 			// this is a route because we're gonna have lots of methods by postId
 			r.Route("/{postId}", func(r chi.Router) {
-				r.Use(app.postsContextMiddleware)
+				r.Use(app.postsContextMiddleware) // wrapped all the method below with token based stateless auth middleware
 
 				r.Get("/", app.getPostHandler)
 				r.Post("/", app.createCommentHandler)
-				r.Delete("/", app.CheckPostOwnership("admin", app.deletePostHandler))
-				r.Patch("/", app.CheckPostOwnership("moderator", app.updatePostHandler))
+				r.Delete("/", app.CheckPostOwnership("admin", app.deletePostHandler))    // wrapped with admin role restriction
+				r.Patch("/", app.CheckPostOwnership("moderator", app.updatePostHandler)) // wrapped with moderator role restriction
 			})
 		})
 
@@ -128,14 +128,14 @@ func (app *application) mount() http.Handler {
 			r.Put("/activate/{token}", app.activateUserHandler)
 
 			r.Route("/{userId}", func(r chi.Router) {
-				r.Use(app.AuthTokenMiddleware)
+				r.Use(app.AuthTokenMiddleware) // wrapped all the method below with token based stateless auth middleware
 
 				r.Get("/", app.getUserHandler)
 				r.Put("/follow", app.followUserHandler)
 				r.Put("/unfollow", app.unfollowUserHandler)
 			})
 			r.Group(func(r chi.Router) {
-				r.Use(app.AuthTokenMiddleware)
+				r.Use(app.AuthTokenMiddleware) //
 				r.Get("/feed", app.getUserFeedHandler)
 			})
 
