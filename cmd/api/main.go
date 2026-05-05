@@ -9,6 +9,8 @@ import (
 	"github.com/na1tto/go-social/internal/env"
 	"github.com/na1tto/go-social/internal/mailer"
 	repository "github.com/na1tto/go-social/internal/store"
+	"github.com/na1tto/go-social/internal/store/cache"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
 
@@ -41,6 +43,12 @@ func main() {
 			maxOpenConns: env.GetInt("DB_MAX_OPEN_CONNS", 30),
 			maxIdleConns: env.GetInt("DB_MAX_IDLE_CONNS", 30),
 			maxIdleTime:  env.GetString("DB_MAX_IDLE_TIME", "15m"),
+		},
+		redisCfg: redisConfig{
+			addr:    env.GetString("REDIS_ADDR", "localhost:6379"),
+			pw:      env.GetString("REDIS_PW", ""),
+			db:      env.GetInt("REDIS_DB", 0),
+			enabled: env.GetBool("REDIS_ENABLED", false),
 		},
 		env: env.GetString("ENV", "development"),
 		mail: mailConfig{
@@ -87,12 +95,20 @@ func main() {
 	defer db.Close()
 	logger.Info("database connection pool stablished")
 
+	// cache
+	var rdb *redis.Client
+	if cfg.redisCfg.enabled {
+		rdb = cache.NewRedisClient(cfg.redisCfg.addr, cfg.redisCfg.pw, cfg.redisCfg.db)
+		logger.Info("redis cache stablished")
+	}
+
 	store := repository.NewStorage(db)
+	cacheStore := cache.NewRedisStorage(rdb)
 
 	// mailer := mailer.NewSendgrid(cfg.mail.sendgrid.apiKey, cfg.mail.fromEmail)
 	mailTrap, err := mailer.NewMailTrapClient(cfg.mail.mailTrap.apiKey, cfg.mail.fromEmail, cfg.mail.mailTrap.sandboxUsername, cfg.mail.mailTrap.password)
 
-	// instatiate the authenticator
+	// instantiate the authenticator
 	jwtAuth := auth.NewJWTAuthenticator(
 		cfg.auth.token.secret,
 		cfg.auth.token.iss,
@@ -102,6 +118,7 @@ func main() {
 	app := &application{
 		config:        cfg,
 		store:         store,
+		cacheStorage:  cacheStore,
 		logger:        logger,
 		mailer:        mailTrap,
 		authenticator: jwtAuth,

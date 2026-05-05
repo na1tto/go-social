@@ -15,12 +15,14 @@ import (
 	"github.com/na1tto/go-social/internal/auth"
 	"github.com/na1tto/go-social/internal/mailer"
 	repository "github.com/na1tto/go-social/internal/store"
+	"github.com/na1tto/go-social/internal/store/cache"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 type application struct {
 	config        serverConfig
 	store         repository.Storage
+	cacheStorage  cache.Storage
 	logger        *zap.SugaredLogger
 	mailer        mailer.Client
 	authenticator auth.Authenticator
@@ -34,6 +36,14 @@ type serverConfig struct {
 	mail        mailConfig
 	frontendURL string
 	auth        authConfig
+	redisCfg    redisConfig
+}
+
+type redisConfig struct {
+	addr    string
+	pw      string
+	db      int
+	enabled bool
 }
 
 type authConfig struct {
