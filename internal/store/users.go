@@ -110,7 +110,7 @@ func (s *UserStore) GetById(ctx context.Context, userId int64) (*User, error) {
 	query := `
 		SELECT	u.id, u.username, u.email, u.password, u.created_at, roles.*
 		FROM users u
-		JOIN roles ON (users.role_id = roles.id)
+		JOIN roles ON (u.role_id = roles.id)
 		WHERE u.id = $1 AND is_active = true
 	`
 
