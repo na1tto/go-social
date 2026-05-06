@@ -46,7 +46,7 @@ func (app *application) AuthTokenMiddleware(next http.Handler) http.Handler {
 
 		ctx := r.Context()
 
-		user, err := app.store.Users.GetById(ctx, userId)
+		user, err := app.getUser(ctx, userId)
 		if err != nil {
 			app.unauthorizedErrorResponse(w, r, err)
 			return
@@ -127,4 +127,28 @@ func (app *application) checkRolePrecedence(ctx context.Context, user *repositor
 	}
 
 	return user.Role.Level >= role.Level, nil
+}
+
+// every autheticated request is gonna return a cached user if its not on the cache
+func (app *application) getUser(ctx context.Context, userId int64) (*repository.User, error) {
+	if !app.config.redisCfg.enabled {
+		return app.store.Users.GetById(ctx, userId)
+	}
+	user, err := app.cacheStorage.Users.Get(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	if user == nil {
+		user, err := app.store.Users.GetById(ctx, userId)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := app.cacheStorage.Users.Set(ctx, user); err != nil {
+			return nil, err
+		}
+	}
+
+	return user, nil
 }

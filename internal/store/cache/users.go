@@ -14,13 +14,15 @@ type UserStore struct {
 	rdb *redis.Client
 }
 
-const UserExpTime = time.Minute
+const UserExpTime = time.Minute * 3
 
 func (s *UserStore) Get(ctx context.Context, userID int64) (*repository.User, error) {
-	cacheKey := fmt.Sprintf("user-%v", userID)
+	cacheKey := fmt.Sprintf("user=%v", userID)
 
 	data, err := s.rdb.Get(ctx, cacheKey).Result()
-	if err != nil {
+	if err == redis.Nil {
+		return nil, nil
+	} else if err != nil {
 		return nil, err
 	}
 
