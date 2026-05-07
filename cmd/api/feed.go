@@ -25,6 +25,8 @@ import (
 //	@Security		ApiKeyAuth
 //	@Router			/users/feed [get]
 func (app *application) getUserFeedHandler(w http.ResponseWriter, r *http.Request) {
+	userCtx := getUserFromContext(r)
+
 	fq := repository.PaginatedFeedQuery{
 		Limit:  10,
 		Offset: 0,
@@ -48,7 +50,7 @@ func (app *application) getUserFeedHandler(w http.ResponseWriter, r *http.Reques
 		fq.Tags = []string{}
 	}
 
-	feed, err := app.store.Posts.GetUserFeed(ctx, int64(40), fq)
+	feed, err := app.store.Posts.GetUserFeed(ctx, userCtx.ID, fq)
 	if err != nil {
 		app.internalServerError(w, r, err)
 	}
