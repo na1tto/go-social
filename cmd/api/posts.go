@@ -223,6 +223,7 @@ func (app *application) createCommentHandler(w http.ResponseWriter, r *http.Requ
 
 	if err := readJson(w, r, &payload); err != nil {
 		app.badRequestResponse(w, r, err)
+		return
 	}
 
 	if err := Validate.Struct(payload); err != nil {
