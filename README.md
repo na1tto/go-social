@@ -613,7 +613,6 @@ http://127.0.0.1:8081
 
 ## Suggested Roadmap
 
-- Remove hardcoded IDs and always use the authenticated user from the JWT.
 - Apply `since` and `until` filters to the feed SQL query.
 - Add unit and integration tests.
 - Create a `.env.example` file.
