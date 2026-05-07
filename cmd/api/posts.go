@@ -216,7 +216,7 @@ type commentPayload struct {
 //	@Security		ApiKeyAuth
 //	@Router			/posts/{postId} [post]
 func (app *application) createCommentHandler(w http.ResponseWriter, r *http.Request) {
-
+	userCtx := getUserFromContext(r)
 	post := getPostFromCtx(r)
 
 	var payload commentPayload
@@ -232,7 +232,7 @@ func (app *application) createCommentHandler(w http.ResponseWriter, r *http.Requ
 
 	comment := &repository.Comment{
 		Content: payload.Content,
-		UserId:  40,
+		UserId:  userCtx.ID,
 		PostId:  post.ID,
 	}
 

@@ -21,7 +21,7 @@ func (app *application) forbiddenResponse(w http.ResponseWriter, r *http.Request
 }
 
 func (app *application) badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
-	app.logger.Warnf("bad request", "method", r.Method, "path", r.URL.Path, "error", err.Error())
+	app.logger.Warnw("bad request", "method", r.Method, "path", r.URL.Path, "error", err.Error())
 
 	writeJsonError(w, http.StatusBadRequest, err.Error())
 }
@@ -39,13 +39,13 @@ func (app *application) conflictResponse(w http.ResponseWriter, r *http.Request,
 }
 
 func (app *application) unauthorizedErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
-	app.logger.Errorw("unauthorized error", "method", r.Method, "path", r.URL.Path, "error", err.Error())
+	app.logger.Warnw("unauthorized error", "method", r.Method, "path", r.URL.Path, "error", err.Error())
 
 	writeJson(w, http.StatusUnauthorized, "unauthorized")
 }
 
 func (app *application) unauthorizedBasicErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
-	app.logger.Errorw("unauthorized basic error", "method", r.Method, "path", r.URL.Path, "error", err.Error())
+	app.logger.Warnw("unauthorized basic error", "method", r.Method, "path", r.URL.Path, "error", err.Error())
 
 	w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
 

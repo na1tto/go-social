@@ -67,7 +67,7 @@ func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 //	@Router			/users/{userId}/follow [put]
 func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request) {
 	followedUser := getUserFromContext(r)
-	followedId, err := strconv.ParseInt(chi.URLParam(r, "UserId"), 10, 64)
+	followedId, err := strconv.ParseInt(chi.URLParam(r, "userId"), 10, 64)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
@@ -107,7 +107,7 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 //	@Router			/users/{userId}/unfollow [put]
 func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Request) {
 	followerUser := getUserFromContext(r)
-	unfollowedId, err := strconv.ParseInt(chi.URLParam(r, "UserId"), 10, 64)
+	unfollowedId, err := strconv.ParseInt(chi.URLParam(r, "userId"), 10, 64)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
