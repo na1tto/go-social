@@ -10,4 +10,4 @@ air -v
 swag --version
 migrate -version
 
-echo "Dev container pronto."
+echo "Dev container is ready."

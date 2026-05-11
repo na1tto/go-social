@@ -28,7 +28,7 @@ test:
 .PHONY: wait-db
 wait-db:
 	@until pg_isready -d "$(DB_ADDR)" > /dev/null 2>&1; do \
-		echo "Aguardando Postgres..."; \
+		echo "waiting for postgres..."; \
 		sleep 1; \
 	done
 
@@ -66,8 +66,8 @@ gen-docs:
 
 .PHONY: setup
 setup: download wait-db migrate-up gen-docs
-	@echo "Setup concluído."
+	@echo "setup completed."
 
 .PHONY: reset-db
 reset-db: migrate-drop migrate-up seed
-	@echo "Banco resetado."
+	@echo "databse reseted."
