@@ -59,7 +59,7 @@ gen-docs:
 	@swag fmt
 	@sed -i 's|swag/v2|swag|g' docs/docs.go
 
-.PHONY: gen-docs
+.PHONY: gen-docs-windows
 gen-docs:
 	@swag init -g ./api/main.go -d cmd,internal --parseDependency --parseInternal && swag fmt
 	@powershell -Command "(Get-Content docs/docs.go) -replace 'swag/v2', 'swag' | Set-Content docs/docs.go"
