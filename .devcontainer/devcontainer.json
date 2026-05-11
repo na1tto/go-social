@@ -1,0 +1,55 @@
+{
+  "name": "go-social-dev",
+  "dockerComposeFile": [
+    "../docker-compose.yml",
+    "docker-compose.devcontainer.yml",
+  ],
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "remoteUser": "app",
+  "updateRemoteUserUID": true,
+
+  "runServices": ["app", "db", "redis", "redis-commander"],
+
+  "shutdownAction": "stopCompose",
+
+  "forwardPorts": [8080, 8081, 8082, 5432, 6379],
+
+  "portsAttributes": {
+    "8080": {
+      "label": "API",
+    },
+    "8081": {
+      "label": "App secondary port",
+    },
+    "8082": {
+      "label": "Redis Commander",
+    },
+    "5432": {
+      "label": "Postgres",
+    },
+    "6379": {
+      "label": "Redis",
+    },
+  },
+
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "waitFor": "postCreateCommand",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "golang.go",
+        "ms-azuretools.vscode-docker",
+        "tamasfe.even-better-toml",
+        "ms-vscode.makefile-tools",
+      ],
+      "settings": {
+        "go.useLanguageServer": true,
+        "go.gopath": "/home/app/go",
+        "go.goroot": "/usr/local/go",
+        "go.toolsManagement.autoUpdate": false,
+      },
+    },
+  },
+}

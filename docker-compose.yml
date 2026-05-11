@@ -1,36 +1,59 @@
 services:
   db:
-    image: postgres:16
-    container_name: postgres-db
-    restart: always
+    image: postgres:16-bookworm
+    restart: unless-stopped
+
     environment:
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${DB_USER:-admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-adminpassword}
+      POSTGRES_DB: ${POSTGRES_DB:-gosocial}
+
     volumes:
-      - db-data:/var/lib/postgresql
+      - db-data:/var/lib/postgresql/data
+
     ports:
       - "5432:5432"
 
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_USER:-admin} -d ${POSTGRES_DB:-gosocial}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
   redis:
-    image: redis:latest
+    image: redis:7-bookworm
     restart: unless-stopped
-    container_name: redis_cache
-    ports:
-      - "6379:6379"
+
     command: redis-server --save 60 1 --loglevel warning
 
-  redis-commander:
-    container_name: redis-commander
-    hostname: redis-commander
-    image: rediscommander/redis-commander:latest
-    environment:
-      - REDIS_HOST:redis
     ports:
-      - "127.0.0.1:8081:8081"
-    depends_on:
-      - redis
+      - "6379:6379"
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
     restart: unless-stopped
+
+    environment:
+      REDIS_HOSTS: local:redis:6379
+
+    ports:
+      - "127.0.0.1:8082:8081"
+
+    depends_on:
+      redis:
+        condition: service_healthy
 
 volumes:
   db-data:

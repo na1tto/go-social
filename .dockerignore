@@ -1,0 +1,14 @@
+.git
+.gitignore
+
+.env
+.env.*
+!.env.example
+
+bin/
+tmp/
+vendor/
+frontend/node_modules/
+
+air.log
+.DS_Store
