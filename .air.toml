@@ -1,14 +1,18 @@
 root = "."
 tmp_dir = "bin"
 
+env_files = [".env"]
+
 [build]
 cmd = "go build -buildvcs=false -o ./bin/main ./cmd/api"
-entrypoint = "./bin/main"
+
+bin = "./bin/main"
+entrypoint = ["./bin/main"]
 
 args_bin = []
 
 include_ext = ["go", "tpl", "tmpl", "html"]
-exclude_dir = ["assets", "tmp", "vendor", "frontend/node_modules", "bin", "docs", ".git"]
+exclude_dir = ["assets", "tmp", "vendor", "frontend/node_modules", "bin", "docs", ".git", "web"]
 include_dir = []
 include_file = []
 exclude_file = ["docs/docs.go", "docs/swagger.json", "docs/swagger.yaml"]
@@ -32,8 +36,8 @@ rerun_delay = 500
 pre_cmd = []
 
 [log]
-time = false
-main_only = true
+time = true
+main_only = false
 silent = false
 
 [color]
@@ -43,8 +47,8 @@ build = "yellow"
 runner = "green"
 
 [misc]
-clean_on_exit = true
+clean_on_exit = false
 
 [screen]
-clear_on_rebuild = true
+clear_on_rebuild = false
 keep_scroll = true

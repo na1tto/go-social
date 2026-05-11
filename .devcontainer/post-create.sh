@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-sudo chown -R app:app /home/app/go /home/app/.cache/go-build || true
-
-git config --global --add safe.directory /workspace
+git config --global --add safe.directory /workspace || true
+git config core.filemode false || true
 
 go mod download
 
@@ -11,4 +10,4 @@ air -v
 swag --version
 migrate -version
 
-echo "Dev container ready."
+echo "Dev container pronto."
