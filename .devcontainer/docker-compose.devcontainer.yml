@@ -1,0 +1,49 @@
+services:
+  app:
+    image: go-social-dev:local
+
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+
+    init: true
+    command: sleep infinity
+
+    volumes:
+      - type: bind
+        source: .
+        target: /workspace
+        consistency: cached
+
+      - type: volume
+        source: go-mod-cache
+        target: /home/app/go/pkg/mod
+
+      - type: volume
+        source: go-build-cache
+        target: /home/app/.cache/go-build
+
+    working_dir: /workspace
+
+    env_file:
+      - path: .env
+        required: false
+
+    environment:
+      GOPATH: /home/app/go
+      GOBIN: /home/app/go/bin
+      PATH: /home/app/go/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+      DB_ADDR: postgres://${DB_USER:-admin}:${DB_PASSWORD:-adminpassword}@db:5432/${POSTGRES_DB:-gosocial}?sslmode=disable
+      REDIS_ADDR: redis:6379
+      REDIS_ENABLED: "true"
+
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  go-mod-cache:
+  go-build-cache:

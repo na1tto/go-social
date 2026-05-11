@@ -237,6 +237,35 @@ Expected response:
 }
 ```
 
+## Development with Dev Container
+
+This project includes a dedicated Dev Container workflow for local development with Docker, PostgreSQL, Redis, live reload with Air, migrations and Swagger generation.
+
+For the complete setup guide, including usage with **VS Code** and **Zed Editor**, see:
+
+[DEVCONTAINER.md](./DEVCONTAINER.md)
+
+The Dev Container guide covers:
+
+- required tools;
+- `.env` setup;
+- opening the project in VS Code;
+- opening the project in Zed;
+- running the application with Air;
+- database migrations and seed;
+- Swagger generation;
+- Git workflow recommendations;
+- troubleshooting common Docker, Git and workspace issues.
+
+Recommended development flow:
+
+```bash
+cd /workspace
+make download
+make migrate-up
+make seed
+make dev
+
 ## Database, Migrations and Seed
 
 Migration files are stored in:
