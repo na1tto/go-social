@@ -15,9 +15,7 @@ This repository currently focuses on the backend API. A dedicated frontend appli
 - [Architecture](#architecture)
 - [Project Structure](#project-structure)
 - [Development Options](#development-options)
-- [Recommended Development with Dev Container](#recommended-development-with-dev-container)
-- [Using the Dev Container with Zed](#using-the-dev-container-with-zed)
-- [Using the Dev Container with VS Code](#using-the-dev-container-with-vs-code)
+- [Development with Dev Container](#development-with-dev-container)
 - [Environment Variables](#environment-variables)
 - [Running Without the Dev Container](#running-without-the-dev-container)
 - [Database, Migrations and Seed](#database-migrations-and-seed)
@@ -150,9 +148,11 @@ Run everything directly on the host machine.
 
 This requires installing Go, `air`, `swag`, `migrate`, Make, Docker, and all required tooling manually.
 
-## Recommended Development with Dev Container
+## Development with Dev Container
 
-This repository includes a Dev Container setup under:
+This repository includes a Dev Container setup for a reproducible development environment across different machines and editors.
+
+The Dev Container configuration is located under:
 
 ```text
 .devcontainer/
@@ -162,141 +162,12 @@ This repository includes a Dev Container setup under:
 └── post-create.sh
 ```
 
-The Dev Container provides:
+It provides the backend development environment with Go, Air, Swag, Migrate, PostgreSQL, Redis, Redis Commander, Go module cache, and Go build cache.
 
-- an `app` service for backend development;
-- workspace mounted at `/workspace`;
-- PostgreSQL through the `db` service;
-- Redis through the `redis` service;
-- Redis Commander through the `redis-commander` service;
-- Go module cache volume;
-- Go build cache volume;
-- `air`, `swag`, and `migrate` installed inside the container;
-- automatic `go mod download` after container creation.
-
-The Dev Container startup script also configures Git safe directory settings for `/workspace`.
-
-For the full Dev Container guide, see:
+For the complete setup and usage guide, including instructions for **Zed Editor**, **VS Code**, environment variables, migrations, seed, Swagger generation, Git workflow, ports, and troubleshooting, see:
 
 ```text
 DEVCONTAINER.md
-```
-
-## Using the Dev Container with Zed
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/na1tto/go-social.git
-cd go-social
-```
-
-### 2. Create the local environment file
-
-```bash
-cp .env.example .env
-```
-
-On Windows PowerShell:
-
-```powershell
-Copy-Item .env.example .env
-```
-
-### 3. Open the project root in Zed
-
-Open the repository root, not the `.devcontainer` folder.
-
-The correct folder contains:
-
-```text
-.git/
-.devcontainer/
-docker-compose.yml
-go.mod
-Makefile
-```
-
-### 4. Open in Dev Container
-
-When Zed detects `.devcontainer/devcontainer.json`, open the project inside the Dev Container.
-
-If the prompt does not appear, use Zed's command palette and look for the remote/dev container workflow, usually available through:
-
-```text
-Project: Open Remote
-```
-
-Then choose the Dev Container option.
-
-### 5. Validate the container
-
-Open a terminal in Zed and run:
-
-```bash
-pwd
-ls -la
-go version
-air -v
-swag --version
-migrate -version
-```
-
-Expected workspace path:
-
-```text
-/workspace
-```
-
-### 6. Start development
-
-```bash
-make setup
-make dev
-```
-
-The API should be available at:
-
-```text
-http://localhost:8080
-```
-
-Health check:
-
-```bash
-curl -u admin:admin http://localhost:8080/v1/health
-```
-
-## Using the Dev Container with VS Code
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/na1tto/go-social.git
-cd go-social
-```
-
-### 2. Create the local environment file
-
-```bash
-cp .env.example .env
-```
-
-### 3. Reopen in container
-
-Open the repository root in VS Code and run:
-
-```text
-Dev Containers: Reopen in Container
-```
-
-### 4. Start development
-
-Inside the container terminal:
-
-```bash
-make setup
-make dev
 ```
 
 ## Environment Variables
