@@ -166,9 +166,7 @@ It provides the backend development environment with Go, Air, Swag, Migrate, Pos
 
 For the complete setup and usage guide, including instructions for **Zed Editor**, **VS Code**, environment variables, migrations, seed, Swagger generation, Git workflow, ports, and troubleshooting, see:
 
-```text
-DEVCONTAINER.md
-```
+ [DEVCONTAINER.md]( DEVCONTAINER.md)
 
 ## Environment Variables
 
