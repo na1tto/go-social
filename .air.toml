@@ -6,6 +6,7 @@ env_files = [".env"]
 [build]
 cmd = "go build -buildvcs=false -o ./bin/main ./cmd/api"
 
+# Linux/macOS/Dev Container
 bin = "./bin/main"
 entrypoint = ["./bin/main"]
 
@@ -35,6 +36,12 @@ rerun_delay = 500
 
 pre_cmd = []
 
+# Auto Override when running air on Windows
+[build.windows]
+cmd = "go build -buildvcs=false -o ./bin/main.exe ./cmd/api"
+bin = "bin\\main.exe"
+entrypoint = ["bin\\main.exe"]
+
 [log]
 time = true
 main_only = false
@@ -47,7 +54,7 @@ build = "yellow"
 runner = "green"
 
 [misc]
-clean_on_exit = false
+clean_on_exit = true
 
 [screen]
 clear_on_rebuild = false
