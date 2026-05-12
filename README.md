@@ -2,9 +2,11 @@
 
 Backend API for a simple social network, focused on user registration, authentication, posts, comments, followers, and a personalized feed.
 
-The project is built with Go, PostgreSQL, Chi, JWT authentication, Swagger documentation, optional Redis caching, and account activation by email.
+The project is built with Go, PostgreSQL, Chi, JWT authentication, Swagger documentation, optional Redis caching, database migrations, live reload with Air, and account activation by email.
 
-> Status: this project is under development. Some routes are already implemented, but there are known limitations documented at the end of this README.
+> Status: this project is under development. Some features are already implemented, but there are known limitations documented at the end of this README.
+
+This repository currently focuses on the backend API. A dedicated frontend application is planned as a separate future project.
 
 ## Table of Contents
 
@@ -12,9 +14,12 @@ The project is built with Go, PostgreSQL, Chi, JWT authentication, Swagger docum
 - [Features](#features)
 - [Architecture](#architecture)
 - [Project Structure](#project-structure)
-- [Requirements](#requirements)
+- [Development Options](#development-options)
+- [Recommended Development with Dev Container](#recommended-development-with-dev-container)
+- [Using the Dev Container with Zed](#using-the-dev-container-with-zed)
+- [Using the Dev Container with VS Code](#using-the-dev-container-with-vs-code)
 - [Environment Variables](#environment-variables)
-- [Running Locally](#running-locally)
+- [Running Without the Dev Container](#running-without-the-dev-container)
 - [Database, Migrations and Seed](#database-migrations-and-seed)
 - [Swagger Documentation](#swagger-documentation)
 - [Authentication](#authentication)
@@ -22,14 +27,17 @@ The project is built with Go, PostgreSQL, Chi, JWT authentication, Swagger docum
 - [Response Format](#response-format)
 - [Data Model](#data-model)
 - [Useful Commands](#useful-commands)
+- [Ports and Services](#ports-and-services)
 - [Known Limitations](#known-limitations)
 - [Suggested Roadmap](#suggested-roadmap)
 
 ## Tech Stack
 
-- Go `1.25.3`
+- Go `1.25.x`
+  - `go.mod` declares Go `1.25.3`
+  - the Dev Container image uses `golang:1.25.10-bookworm`
 - PostgreSQL `16`
-- Optional Redis cache
+- Redis `7`
 - Chi router
 - Chi CORS middleware
 - JWT with `github.com/golang-jwt/jwt/v5`
@@ -38,7 +46,10 @@ The project is built with Go, PostgreSQL, Chi, JWT authentication, Swagger docum
 - Logging with `go.uber.org/zap`
 - Swagger/OpenAPI with `swaggo`
 - Database migrations with `golang-migrate`
+- Live reload with `air`
 - Email delivery through Mailtrap, with structure also prepared for SendGrid
+- Docker Compose
+- Dev Container support for reproducible development environments
 
 ## Features
 
@@ -53,6 +64,8 @@ The project is built with Go, PostgreSQL, Chi, JWT authentication, Swagger docum
 - Basic role-based permission model: `user`, `moderator`, and `admin`.
 - Optional Redis cache for authenticated user lookups.
 - Swagger UI for API inspection.
+- Dev Container setup for development across different machines.
+- Live reload workflow through Air.
 
 ## Architecture
 
@@ -80,13 +93,18 @@ Main components:
 - `internal/mailer`: email delivery.
 - `cmd/migrate/migrations`: SQL migration files.
 - `docs`: generated Swagger documentation.
-
-The frontend is not part of the current scope of this backend documentation. A dedicated frontend application is planned as a future project.
+- `.devcontainer`: containerized development environment.
+- `DEVCONTAINER.md`: complete guide for using the project with Dev Containers, VS Code, and Zed.
 
 ## Project Structure
 
 ```text
 go-social/
+├── .devcontainer/
+│   ├── Dockerfile
+│   ├── devcontainer.json
+│   ├── docker-compose.devcontainer.yml
+│   └── post-create.sh
 ├── cmd/
 │   ├── api/
 │   │   ├── api.go
@@ -106,165 +124,307 @@ go-social/
 │   ├── env/
 │   ├── mailer/
 │   └── store/
+├── .air.toml
+├── .env.example
+├── DEVCONTAINER.md
 ├── docker-compose.yml
 ├── Makefile
 ├── go.mod
+├── go.sum
 └── README.md
 ```
 
-## Requirements
+## Development Options
 
-Install the following tools:
+There are two supported development workflows.
 
-- Go compatible with the version defined in `go.mod`.
-- Docker and Docker Compose.
-- GNU Make.
-- `golang-migrate`.
-- `swag`, only if you need to regenerate the Swagger documentation.
+### Recommended workflow
 
-Install `swag`:
+Use the Dev Container.
 
-```bash
-go install github.com/swaggo/swag/cmd/swag@latest
+This gives every developer the same environment with Go, Air, Swag, Migrate, PostgreSQL client tools, Redis access, module caches, and build caches already configured.
+
+### Alternative workflow
+
+Run everything directly on the host machine.
+
+This requires installing Go, `air`, `swag`, `migrate`, Make, Docker, and all required tooling manually.
+
+## Recommended Development with Dev Container
+
+This repository includes a Dev Container setup under:
+
+```text
+.devcontainer/
+├── Dockerfile
+├── devcontainer.json
+├── docker-compose.devcontainer.yml
+└── post-create.sh
 ```
 
-Install `golang-migrate`:
+The Dev Container provides:
 
-```bash
-# Choose the installation method that matches your operating system.
-# https://github.com/golang-migrate/migrate/tree/master/cmd/migrate
+- an `app` service for backend development;
+- workspace mounted at `/workspace`;
+- PostgreSQL through the `db` service;
+- Redis through the `redis` service;
+- Redis Commander through the `redis-commander` service;
+- Go module cache volume;
+- Go build cache volume;
+- `air`, `swag`, and `migrate` installed inside the container;
+- automatic `go mod download` after container creation.
+
+The Dev Container startup script also configures Git safe directory settings for `/workspace`.
+
+For the full Dev Container guide, see:
+
+```text
+DEVCONTAINER.md
 ```
 
-## Environment Variables
+## Using the Dev Container with Zed
 
-Create a `.env` file in the project root. This file is automatically loaded by the backend and is also used by the `Makefile`.
-
-Example for local development:
-
-```env
-# API
-ADDR=:8080
-ENV=development
-EXTERNAL_URL=localhost:8080
-FRONTEND_URL=http://localhost:5173
-
-# PostgreSQL / Docker Compose
-DB_USER=admin
-DB_PASSWORD=adminpassword
-POSTGRES_DB=gosocial
-DB_ADDR=postgres://admin:adminpassword@localhost/gosocial?sslmode=disable
-DB_MAX_OPEN_CONNS=30
-DB_MAX_IDLE_CONNS=30
-DB_MAX_IDLE_TIME=15m
-
-# Redis
-REDIS_ENABLED=false
-REDIS_ADDR=localhost:6379
-REDIS_PW=
-REDIS_DB=0
-
-# Health check Basic Auth
-AUTH_BASIC_USER=admin
-AUTH_BASIC_PASS=admin
-
-# JWT
-AUTH_TOKEN_SECRET=change-me-in-development
-
-# Email / account activation
-FROM_EMAIL=no-reply@example.com
-MAILTRAP_API_KEY=
-MAILTRAP_USERNAME=
-MAILTRAP_PASSWORD=
-SENDGRID_API_KEY=
-```
-
-Notes:
-
-- `ADDR` must use a valid `http.Server` address format, such as `:8080`.
-- User registration triggers email delivery. Configure Mailtrap to test the full registration and activation flow.
-- `REDIS_ENABLED=false` makes the backend read authenticated users directly from PostgreSQL.
-- `.env` is ignored by Git, so it must be created locally.
-- `FRONTEND_URL` is currently used to build the account activation link. A dedicated frontend will be developed later as a separate project.
-
-## Running Locally
-
-Clone the repository:
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/na1tto/go-social.git
 cd go-social
 ```
 
-Start PostgreSQL, Redis, and Redis Commander:
+### 2. Create the local environment file
 
 ```bash
-docker compose up -d
+cp .env.example .env
 ```
 
-Run the migrations:
+On Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+### 3. Open the project root in Zed
+
+Open the repository root, not the `.devcontainer` folder.
+
+The correct folder contains:
+
+```text
+.git/
+.devcontainer/
+docker-compose.yml
+go.mod
+Makefile
+```
+
+### 4. Open in Dev Container
+
+When Zed detects `.devcontainer/devcontainer.json`, open the project inside the Dev Container.
+
+If the prompt does not appear, use Zed's command palette and look for the remote/dev container workflow, usually available through:
+
+```text
+Project: Open Remote
+```
+
+Then choose the Dev Container option.
+
+### 5. Validate the container
+
+Open a terminal in Zed and run:
 
 ```bash
-make migrate-up
+pwd
+ls -la
+go version
+air -v
+swag --version
+migrate -version
 ```
 
-Optionally seed the database with test data:
+Expected workspace path:
+
+```text
+/workspace
+```
+
+### 6. Start development
 
 ```bash
-make seed
+make setup
+make dev
 ```
 
-Run the API:
+The API should be available at:
 
-```bash
-go run ./cmd/api
+```text
+http://localhost:8080
 ```
 
-Test the health check with Basic Auth:
+Health check:
 
 ```bash
 curl -u admin:admin http://localhost:8080/v1/health
 ```
 
-Expected response:
+## Using the Dev Container with VS Code
 
-```json
-{
-  "data": {
-    "env": "development",
-    "status": "ok",
-    "version": "0.0.1"
-  }
-}
-```
-
-## Development with Dev Container
-
-This project includes a dedicated Dev Container workflow for local development with Docker, PostgreSQL, Redis, live reload with Air, migrations and Swagger generation.
-
-For the complete setup guide, including usage with **VS Code** and **Zed Editor**, see:
-
-[DEVCONTAINER.md](./DEVCONTAINER.md)
-
-The Dev Container guide covers:
-
-- required tools;
-- `.env` setup;
-- opening the project in VS Code;
-- opening the project in Zed;
-- running the application with Air;
-- database migrations and seed;
-- Swagger generation;
-- Git workflow recommendations;
-- troubleshooting common Docker, Git and workspace issues.
-
-Recommended development flow:
+### 1. Clone the repository
 
 ```bash
-cd /workspace
-make download
+git clone https://github.com/na1tto/go-social.git
+cd go-social
+```
+
+### 2. Create the local environment file
+
+```bash
+cp .env.example .env
+```
+
+### 3. Reopen in container
+
+Open the repository root in VS Code and run:
+
+```text
+Dev Containers: Reopen in Container
+```
+
+### 4. Start development
+
+Inside the container terminal:
+
+```bash
+make setup
+make dev
+```
+
+## Environment Variables
+
+Create a `.env` file from `.env.example`:
+
+```bash
+cp .env.example .env
+```
+
+Current `.env.example` is optimized for the Dev Container workflow:
+
+```env
+ADDR=:8080
+ENV=development
+EXTERNAL_URL=http://localhost:8080
+
+DB_USER=admin
+DB_PASSWORD=adminpassword
+POSTGRES_DB=gosocial
+POSTGRES_PORT=15432
+
+DB_ADDR=postgres://admin:adminpassword@db:5432/gosocial?sslmode=disable
+
+FROM_EMAIL=no-reply@example.com
+
+SENDGRID_API_KEY=
+
+MAILTRAP_API_KEY=
+MAILTRAP_USERNAME=
+MAILTRAP_PASSWORD=
+
+REDIS_ENABLED=true
+REDIS_ADDR=redis:6379
+REDIS_PORT=16379
+```
+
+Important distinction:
+
+```text
+Inside the Dev Container:
+PostgreSQL -> db:5432
+Redis      -> redis:6379
+
+From the host machine:
+PostgreSQL -> localhost:15432
+Redis      -> localhost:16379
+Redis UI   -> http://localhost:8082
+API        -> http://localhost:8080
+```
+
+Optional variables supported by the application include:
+
+```env
+AUTH_BASIC_USER=admin
+AUTH_BASIC_PASS=admin
+AUTH_TOKEN_SECRET=change-me-in-development
+FRONTEND_URL=http://localhost:5173
+DB_MAX_OPEN_CONNS=30
+DB_MAX_IDLE_CONNS=30
+DB_MAX_IDLE_TIME=15m
+REDIS_PW=
+REDIS_DB=0
+```
+
+Notes:
+
+- `.env` is ignored by Git and must not be committed.
+- `FRONTEND_URL` is currently used to build account activation links. The frontend itself is planned as a future separate project.
+- User registration triggers email delivery. Configure Mailtrap to test the full registration and activation flow.
+- If email credentials are not configured, the registration flow may fail when trying to send the activation email.
+
+## Running Without the Dev Container
+
+This workflow is available, but the Dev Container is recommended.
+
+### 1. Install required tools
+
+Install on the host machine:
+
+- Go compatible with this project.
+- Docker and Docker Compose.
+- GNU Make.
+- `air`.
+- `swag`.
+- `golang-migrate`.
+
+Install tools manually:
+
+```bash
+go install github.com/air-verse/air@v1.65.1
+go install github.com/swaggo/swag/cmd/swag@v1.16.6
+go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.19.0
+```
+
+### 2. Start infrastructure
+
+```bash
+docker compose up -d
+```
+
+### 3. Configure host database URL
+
+When running commands directly from the host, use the host-mapped PostgreSQL port:
+
+```bash
+export DB_ADDR="postgres://admin:adminpassword@localhost:15432/gosocial?sslmode=disable"
+```
+
+On Windows PowerShell:
+
+```powershell
+$env:DB_ADDR = "postgres://admin:adminpassword@localhost:15432/gosocial?sslmode=disable"
+```
+
+### 4. Run setup and API
+
+```bash
 make migrate-up
 make seed
+go run ./cmd/api
+```
+
+For live reload:
+
+```bash
 make dev
+```
 
 ## Database, Migrations and Seed
 
@@ -277,7 +437,7 @@ cmd/migrate/migrations
 Create a new migration:
 
 ```bash
-make migration migration_name
+make migration name=create_users
 ```
 
 Apply migrations:
@@ -286,13 +446,25 @@ Apply migrations:
 make migrate-up
 ```
 
-Rollback migrations:
+Rollback one migration:
 
 ```bash
-make migrate-down 1
+make migrate-down
 ```
 
-Run the database seed:
+Drop the schema:
+
+```bash
+make migrate-drop
+```
+
+Reset the local database:
+
+```bash
+make reset-db
+```
+
+Run seed:
 
 ```bash
 make seed
@@ -330,7 +502,7 @@ With the API running, open:
 http://localhost:8080/v1/swagger/index.html
 ```
 
-If the Swagger UI opens but does not load the schema, check `EXTERNAL_URL`, `ADDR`, and regenerate the documentation with `make gen-docs`.
+If the Swagger UI opens but does not load the schema, check `EXTERNAL_URL`, `ADDR`, and the generated files under `docs/`.
 
 ## Authentication
 
@@ -349,6 +521,12 @@ Credentials are configured through:
 ```env
 AUTH_BASIC_USER=admin
 AUTH_BASIC_PASS=admin
+```
+
+If these variables are not set, the application defaults to:
+
+```text
+admin:admin
 ```
 
 ### 2. User registration and account activation
@@ -434,7 +612,7 @@ http://localhost:8080/v1
 | `GET` | `/users/{userId}` | Bearer Token | Fetches an active user profile. |
 | `PUT` | `/users/{userId}/follow` | Bearer Token | Follows a user. |
 | `PUT` | `/users/{userId}/unfollow` | Bearer Token | Unfollows a user. |
-| `GET` | `/users/feed` | Bearer Token | Returns the paginated user feed. |
+| `GET` | `/users/feed` | Bearer Token | Returns the paginated feed for the authenticated user. |
 
 Feed query parameters:
 
@@ -461,7 +639,7 @@ curl "http://localhost:8080/v1/users/feed?limit=10&offset=0&sort=desc&tags=GoLan
 |---|---|---|---|
 | `POST` | `/posts/` | Bearer Token | Creates a post. |
 | `GET` | `/posts/{postId}/` | Bearer Token | Fetches a post by ID, including comments. |
-| `POST` | `/posts/{postId}/` | Bearer Token | Creates a comment on the post. |
+| `POST` | `/posts/{postId}/` | Bearer Token | Creates a comment on the post as the authenticated user. |
 | `PATCH` | `/posts/{postId}/` | Bearer Token + ownership/role | Updates the title and/or content. |
 | `DELETE` | `/posts/{postId}/` | Bearer Token + ownership/role | Deletes the post. |
 
@@ -591,63 +769,104 @@ Relevant indexes and extensions:
 
 ## Useful Commands
 
+### Development commands
+
 ```bash
-# start local infrastructure
-docker compose up -d
+# show tool versions
+make tools
 
-# stop local infrastructure
-docker compose down
+# download Go dependencies
+make download
 
+# tidy Go modules
+make tidy
+
+# run tests
+make test
+
+# run API with live reload
+make dev
+
+# run initial setup
+make setup
+```
+
+### Database commands
+
+```bash
 # apply migrations
 make migrate-up
 
 # rollback one migration
-make migrate-down 1
+make migrate-down
 
-# create a new migration
-make migration migration_name
+# drop schema
+make migrate-drop
 
 # run seed
 make seed
 
-# run API
-go run ./cmd/api
+# reset local database
+make reset-db
 
-# generate Swagger docs
+# create a migration
+make migration name=create_users
+```
+
+### Swagger commands
+
+```bash
 make gen-docs
 ```
 
-Docker services:
+### Docker commands
 
-| Service | Port | Description |
-|---|---:|---|
-| PostgreSQL | `5432` | Main database. |
-| Redis | `6379` | Optional cache. |
-| Redis Commander | `8081` | Local UI for inspecting Redis. |
+```bash
+# start infrastructure
+docker compose up -d
 
-Redis Commander:
+# stop infrastructure
+docker compose down
 
-```text
-http://127.0.0.1:8081
+# stop infrastructure and remove volumes
+docker compose down --volumes
 ```
+
+### Manual API run without Air
+
+```bash
+go build -buildvcs=false -o ./bin/main ./cmd/api
+./bin/main
+```
+
+## Ports and Services
+
+| Service | Inside Docker network | Host access | Description |
+|---|---:|---:|---|
+| API | `app:8080` | `localhost:8080` | Go backend API |
+| PostgreSQL | `db:5432` | `localhost:15432` | Main database |
+| Redis | `redis:6379` | `localhost:16379` | Optional cache |
+| Redis Commander | `redis-commander:8081` | `localhost:8082` | Redis web UI |
 
 ## Known Limitations
 
-- The project is still under development and does not currently include a test suite or CI pipeline.
-- The frontend is not part of the current implementation scope. A dedicated frontend application is planned for a future project.
+- The project is still under development.
+- The repository currently focuses on the backend API. A dedicated frontend application is planned as a future separate project.
 - User registration depends on email delivery; without Mailtrap configured, the full registration and activation flow may fail.
 - `since` and `until` are parsed in the feed query but are not currently applied in the SQL query.
 - The Swagger schema URL may require adjustments to `ADDR` or `EXTERNAL_URL`, depending on how the API is executed.
-- The `Makefile` contains a `powershell` step in `make gen-docs`, which may require adjustment on Linux or macOS.
+- The current `Makefile` contains a duplicated `gen-docs` target name, including a Windows-oriented recipe. This should be reviewed to avoid ambiguity between Linux/macOS and Windows documentation generation workflows.
+- When running directly on the host, `.env.example` cannot be used unchanged for database access because it targets Docker service names such as `db` and `redis`. Use `localhost:15432` and `localhost:16379` from the host.
 
 ## Suggested Roadmap
 
 - Apply `since` and `until` filters to the feed SQL query.
+- Review and split Linux/macOS and Windows Swagger generation commands in the `Makefile`.
 - Add unit and integration tests.
-- Create a `.env.example` file.
 - Improve mailer bootstrap error handling.
 - Add refresh token support.
 - Create a separate frontend project for login, registration, feed, and post creation.
 - Add a CI pipeline.
 - Review and standardize Swagger annotations.
 - Add rate limiting.
+- Add production-oriented Docker image separate from the Dev Container.
