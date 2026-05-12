@@ -8,6 +8,7 @@ import (
 	"github.com/na1tto/go-social/internal/db"
 	"github.com/na1tto/go-social/internal/env"
 	"github.com/na1tto/go-social/internal/mailer"
+	rateLimiter "github.com/na1tto/go-social/internal/ratelimiter"
 	repository "github.com/na1tto/go-social/internal/store"
 	"github.com/na1tto/go-social/internal/store/cache"
 	"github.com/redis/go-redis/v9"
@@ -74,6 +75,11 @@ func main() {
 				iss:    "GoSocial",
 			},
 		},
+		rateLimiter: rateLimiter.Config{
+			RequestPerTimeFrame: env.GetInt("RATELIMITER_REQUESTS_COUNT", 20),
+			TimeFrame:           time.Second * 3,
+			Enabled:             env.GetBool("RATE_LIMITER_ENABLED", true),
+		},
 	}
 
 	//logger
@@ -115,6 +121,12 @@ func main() {
 		cfg.auth.token.iss,
 	)
 
+	// rate limiter
+	rateLimiter := rateLimiter.NewFixedWindowRateLimiter(
+		cfg.rateLimiter.RequestPerTimeFrame,
+		cfg.rateLimiter.TimeFrame,
+	)
+
 	app := &application{
 		config:        cfg,
 		store:         store,
@@ -122,6 +134,7 @@ func main() {
 		logger:        logger,
 		mailer:        mailTrap,
 		authenticator: jwtAuth,
+		rateLimiter:   rateLimiter,
 	}
 
 	mux := app.mount()

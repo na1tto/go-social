@@ -106,12 +106,18 @@ go-social/
 ├── cmd/
 │   ├── api/
 │   │   ├── api.go
+│   │   ├── api_test.go
 │   │   ├── auth.go
+│   │   ├── errors.go
 │   │   ├── feed.go
 │   │   ├── health.go
+│   │   ├── json.go
+│   │   ├── main.go
 │   │   ├── middleware.go
 │   │   ├── posts.go
+│   │   ├── test_utils.go
 │   │   └── users.go
+│   │   ├── users_test.go.go
 │   └── migrate/
 │       ├── migrations/
 │       └── seed/
@@ -201,6 +207,9 @@ MAILTRAP_PASSWORD=
 REDIS_ENABLED=true
 REDIS_ADDR=redis:6379
 REDIS_PORT=16379
+
+RATELIMITER_REQUESTS_COUNT=20
+RATE_LIMITER_ENABLED=true
 ```
 
 Important distinction:

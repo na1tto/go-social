@@ -19,6 +19,7 @@ import (
 	"github.com/na1tto/go-social/docs"
 	"github.com/na1tto/go-social/internal/auth"
 	"github.com/na1tto/go-social/internal/mailer"
+	rateLimiter "github.com/na1tto/go-social/internal/ratelimiter"
 	repository "github.com/na1tto/go-social/internal/store"
 	"github.com/na1tto/go-social/internal/store/cache"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
@@ -31,6 +32,7 @@ type application struct {
 	logger        *zap.SugaredLogger
 	mailer        mailer.Client
 	authenticator auth.Authenticator
+	rateLimiter   rateLimiter.Limiter
 }
 
 type serverConfig struct {
@@ -42,6 +44,7 @@ type serverConfig struct {
 	frontendURL string
 	auth        authConfig
 	redisCfg    redisConfig
+	rateLimiter rateLimiter.Config
 }
 
 type redisConfig struct {
@@ -109,6 +112,7 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(app.RateLimitMiddeware)
 
 	// Set a timeout value on the request context (ctx), that will signall
 	// through ctx.Done() that the request has timed out and further
@@ -117,8 +121,8 @@ func (app *application) mount() http.Handler {
 
 	r.Route("/v1", func(r chi.Router) {
 		// wrapping the /health endpoint with basic auth
-		r.With(app.BasicAuthMiddleware()).Get("/health", app.healthCheckHandler)
-
+		//r.With(app.BasicAuthMiddleware()).Get("/health", app.healthCheckHandler)
+		r.Get("/health", app.healthCheckHandler)
 		docsURL := fmt.Sprintf("%s/swagger/doc.json", app.config.addr)
 		r.Get("/swagger/*", httpSwagger.Handler(
 			httpSwagger.URL(docsURL), //The url pointing to API definition
