@@ -5,43 +5,50 @@ import (
 	"time"
 )
 
+type clientData struct {
+	count   int
+	resetAt time.Time
+}
+
 type FixedWindowLimiter struct {
-	sync.RWMutex
-	clients map[string]int
+	sync.Mutex
+	clients map[string]clientData
 	limit   int
 	window  time.Duration
 }
 
 func NewFixedWindowRateLimiter(limit int, window time.Duration) *FixedWindowLimiter {
 	return &FixedWindowLimiter{
-		clients: make(map[string]int),
+		clients: make(map[string]clientData),
 		limit:   limit,
 		window:  window,
 	}
 }
 
 func (rl *FixedWindowLimiter) Allow(ip string) (bool, time.Duration) {
-	rl.RLock()
-	count, exists := rl.clients[ip]
-	rl.RUnlock()
+	now := time.Now()
 
-	if !exists || count < rl.limit {
-		rl.Lock()
-		if !exists {
-			go rl.resetCount(ip)
+	rl.Lock()
+	defer rl.Unlock()
+
+	client, exists := rl.clients[ip]
+
+	if !exists || now.After(client.resetAt) {
+		rl.clients[ip] = clientData{
+			count:   1,
+			resetAt: now.Add(rl.window),
 		}
 
-		rl.clients[ip]++
-		rl.Unlock()
 		return true, 0
 	}
 
-	return false, rl.window
-}
+	if client.count >= rl.limit {
+		retryAfter := time.Until(client.resetAt)
+		return false, retryAfter
+	}
 
-func (rl *FixedWindowLimiter) resetCount(ip string) {
-	time.Sleep(rl.window)
-	rl.Lock()
-	delete(rl.clients, ip)
-	rl.Unlock()
+	client.count++
+	rl.clients[ip] = client
+
+	return true, 0
 }
