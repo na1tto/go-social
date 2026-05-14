@@ -18,6 +18,7 @@ import (
 	//"github.com/na1tto/go-social/docs"
 	"github.com/na1tto/go-social/docs"
 	"github.com/na1tto/go-social/internal/auth"
+	"github.com/na1tto/go-social/internal/env"
 	"github.com/na1tto/go-social/internal/mailer"
 	rateLimiter "github.com/na1tto/go-social/internal/ratelimiter"
 	repository "github.com/na1tto/go-social/internal/store"
@@ -97,9 +98,15 @@ type dbConfig struct {
 func (app *application) mount() http.Handler {
 	r := chi.NewRouter()
 
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+	r.Use(app.RateLimitMiddeware)
+
 	r.Use(cors.Handler(cors.Options{
 		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
-		AllowedOrigins: []string{"https://*", "http://*"},
+		AllowedOrigins: []string{env.GetString("CORS_ALLOWED_ORIGIN", "http://localhost:5174")},
 		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
@@ -107,12 +114,6 @@ func (app *application) mount() http.Handler {
 		AllowCredentials: true,
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}))
-
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	r.Use(app.RateLimitMiddeware)
 
 	// Set a timeout value on the request context (ctx), that will signall
 	// through ctx.Done() that the request has timed out and further

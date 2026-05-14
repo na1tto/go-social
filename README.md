@@ -188,6 +188,7 @@ Current `.env.example` is optimized for the Dev Container workflow:
 ADDR=:8080
 ENV=development
 EXTERNAL_URL=http://localhost:8080
+CORS_ALLOWED_ORIGIN=http://localhost:5174
 
 DB_USER=admin
 DB_PASSWORD=adminpassword
