@@ -66,6 +66,22 @@ definitions:
     required:
     - content
     type: object
+  api.createPostPayload:
+    properties:
+      content:
+        maxLength: 1000
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        maxLength: 100
+        type: string
+    required:
+    - content
+    - title
+    type: object
   github_com_na1tto_go-social_internal_store.Comment:
     properties:
       content:
@@ -232,7 +248,7 @@ paths:
         name: credentials
         required: true
         schema:
-          $ref: '#/definitions/github_com_na1tto_go-social_internal_store.Post'
+          $ref: '#/definitions/api.createPostPayload'
       produces:
       - application/json
       responses:

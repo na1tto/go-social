@@ -158,7 +158,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_na1tto_go-social_internal_store.Post"
+                            "$ref": "#/definitions/api.createPostPayload"
                         }
                     }
                 ],
@@ -735,6 +735,29 @@ const docTemplate = `{
                 "content": {
                     "type": "string",
                     "maxLength": 300
+                }
+            }
+        },
+        "api.createPostPayload": {
+            "type": "object",
+            "required": [
+                "content",
+                "title"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string",
+                    "maxLength": 1000
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string",
+                    "maxLength": 100
                 }
             }
         },

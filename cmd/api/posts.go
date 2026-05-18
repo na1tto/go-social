@@ -28,8 +28,8 @@ type createPostPayload struct {
 //	@Tags			Posts
 //	@Accept			json
 //	@Produce		json
-//	@Param			credentials	body		repository.Post	true	"Post Infos"
-//	@Success		201			{object}	repository.Post	"Success"
+//	@Param			credentials	body		createPostPayload	true	"Post Infos"
+//	@Success		201			{object}	repository.Post		"Success"
 //	@Failure		400			{object}	error
 //	@Failure		500			{object}	error
 //	@Security		ApiKeyAuth
