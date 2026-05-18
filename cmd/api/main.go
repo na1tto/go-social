@@ -1,6 +1,8 @@
 package main
 
 import (
+	"expvar"
+	"runtime"
 	"time"
 
 	_ "github.com/joho/godotenv/autoload"
@@ -136,6 +138,15 @@ func main() {
 		authenticator: jwtAuth,
 		rateLimiter:   rateLimiter,
 	}
+
+	// Metrics colected
+	expvar.NewString("version").Set(version)
+	expvar.Publish("database", expvar.Func(func() any {
+		return db.Stats()
+	}))
+	expvar.Publish("goroutines", expvar.Func(func() any {
+		return runtime.NumGoroutine()
+	}))
 
 	mux := app.mount()
 	logger.Fatal(app.run(mux))
