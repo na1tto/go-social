@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/na1tto/go-social/compare/v1.0.0...v1.1.0) (2026-08-09)
+
+
+### Features
+
+* added api version automation ([1facb5d](https://github.com/na1tto/go-social/commit/1facb5d053da8701c0576fd3d0ac2e005f0cb7da))
+
 ## 1.0.0 (2026-08-09)
 
 
