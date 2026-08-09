@@ -10,7 +10,7 @@ import (
 var (
 	ErrNotFound          = errors.New("resource not found")
 	ErrConflict          = errors.New("resource already exists")
-	StatusConflict       = errors.New("resource depracated")
+	ErrStatusConflict    = errors.New("resource depracated")
 	QueryTimeoutDuration = time.Duration(time.Second * 5)
 )
 

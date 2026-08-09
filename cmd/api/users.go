@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"net/http"
 	"strconv"
 
@@ -156,34 +155,6 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 		app.internalServerError(w, r, err)
 		return
 	}
-}
-
-// same middleware logic that we implemented in the posts handlers
-func (app *application) userContextMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userId, err := strconv.ParseInt(chi.URLParam(r, "userId"), 10, 64)
-		if err != nil {
-			app.badRequestResponse(w, r, err)
-			return
-		}
-
-		ctx := r.Context()
-
-		user, err := app.store.Users.GetById(ctx, userId)
-		if err != nil {
-			switch err {
-			case repository.ErrNotFound:
-				app.notFoundResponse(w, r, err)
-				return
-			default:
-				app.internalServerError(w, r, err)
-				return
-			}
-		}
-
-		ctx = context.WithValue(ctx, userCtx, user)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
 }
 
 func getUserFromContext(r *http.Request) *repository.User {

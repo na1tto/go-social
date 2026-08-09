@@ -114,7 +114,7 @@ func main() {
 	cacheStore := cache.NewRedisStorage(rdb)
 
 	// mailer := mailer.NewSendgrid(cfg.mail.sendgrid.apiKey, cfg.mail.fromEmail)
-	mailTrap, err := mailer.NewMailTrapClient(cfg.mail.mailTrap.apiKey, cfg.mail.fromEmail, cfg.mail.mailTrap.sandboxUsername, cfg.mail.mailTrap.password)
+	mailTrap, _ := mailer.NewMailTrapClient(cfg.mail.mailTrap.apiKey, cfg.mail.fromEmail, cfg.mail.mailTrap.sandboxUsername, cfg.mail.mailTrap.password)
 
 	// instantiate the authenticator
 	jwtAuth := auth.NewJWTAuthenticator(
