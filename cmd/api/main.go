@@ -17,7 +17,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const version = "0.0.1"
+const version = ""
 
 //	@title			Go-Social API
 //	@description	This is my swagger documentation for the Go-Social Project!
