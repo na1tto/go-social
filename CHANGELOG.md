@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/na1tto/go-social/compare/v1.1.0...v1.2.0) (2026-08-09)
+
+
+### Features
+
+* added dockerfile ([600ac48](https://github.com/na1tto/go-social/commit/600ac482494ed86f9f4ce29db67ee9bd9850a045))
+
 ## [1.1.0](https://github.com/na1tto/go-social/compare/v1.0.0...v1.1.0) (2026-08-09)
 
 
