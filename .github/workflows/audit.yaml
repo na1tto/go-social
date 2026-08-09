@@ -8,7 +8,7 @@ on:
 
 jobs:
   audit:
-    runs-on: unbutu-20.04
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
 
