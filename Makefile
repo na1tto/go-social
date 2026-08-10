@@ -1,6 +1,5 @@
+include .env
 MIGRATIONS_PATH ?= ./cmd/migrate/migrations
-DB_ADDR ?= postgres://admin:adminpassword@localhost:5432/gosocial?sslmode=disable
-MIGRATION_NAME ?=
 
 .PHONY: dev
 dev:
