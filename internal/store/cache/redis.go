@@ -1,6 +1,8 @@
 package cache
 
 import (
+	"crypto/tls"
+
 	"github.com/redis/go-redis/v9"
 )
 
@@ -9,5 +11,8 @@ func NewRedisClient(addr, pw string, db int) *redis.Client {
 		Addr:     addr,
 		Password: pw,
 		DB:       db,
+		TLSConfig: &tls.Config{
+			MinVersion: tls.VersionTLS12,
+		},
 	})
 }
