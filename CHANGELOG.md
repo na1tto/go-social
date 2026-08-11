@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/na1tto/go-social/compare/v1.2.0...v1.2.1) (2026-08-10)
+
+
+### Bug Fixes
+
+* fixed missing quotation marks in dockerfile cmd path ([b8d2b5a](https://github.com/na1tto/go-social/commit/b8d2b5a63ce982a1217d23e301eb3a9572f2c19e))
+
 ## [1.2.0](https://github.com/na1tto/go-social/compare/v1.1.0...v1.2.0) (2026-08-09)
 
 
