@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.3](https://github.com/na1tto/go-social/compare/v1.2.2...v1.2.3) (2026-08-12)
+
+
+### Bug Fixes
+
+* fix typo in Level field in roles.go ([6a300b0](https://github.com/na1tto/go-social/commit/6a300b0d2bb57619343d39adbd96df5aa238e099))
+
 ## [1.2.2](https://github.com/na1tto/go-social/compare/v1.2.1...v1.2.2) (2026-08-11)
 
 
