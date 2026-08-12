@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.2](https://github.com/na1tto/go-social/compare/v1.2.1...v1.2.2) (2026-08-11)
+
+
+### Bug Fixes
+
+* fixed missing certificate extension ([9b94b0d](https://github.com/na1tto/go-social/commit/9b94b0d7c71f78275d753ff25af3f02b80ab5ab5))
+
 ## [1.2.1](https://github.com/na1tto/go-social/compare/v1.2.0...v1.2.1) (2026-08-10)
 
 
