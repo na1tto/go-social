@@ -133,7 +133,7 @@ type CreateUserTokenPayload struct {
 //	@Accept			json
 //	@Produce		json
 //	@Param			payload					body		CreateUserTokenPayload	true	"User credentials"
-//	@Success		200						{string}	string
+//	@Success		201						{string}	string
 //	@Failure		400						{object}	error
 //	@Failure		401						{object}	error
 //	@Failure		500						{object}	error
