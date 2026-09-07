@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/na1tto/go-social/compare/v1.2.3...v1.3.0) (2026-09-07)
+
+
+### Features
+
+* added access logging middleware ([22b1a5f](https://github.com/na1tto/go-social/commit/22b1a5f7a4f19c6a85ac3cd3182d34d56de3b80d))
+
 ## [1.2.3](https://github.com/na1tto/go-social/compare/v1.2.2...v1.2.3) (2026-08-12)
 
 
