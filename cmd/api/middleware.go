@@ -7,7 +7,10 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/golang-jwt/jwt/v5"
 	repository "github.com/na1tto/go-social/internal/store"
 )
@@ -163,5 +166,39 @@ func (app *application) RateLimitMiddeware(next http.Handler) http.Handler {
 		}
 
 		next.ServeHTTP(w, r)
+	})
+}
+
+// this logger middleware is the foundation for our observability improvements in the application
+func (app *application) RequestLoggerMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// counting request duration
+		start := time.Now()
+		ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
+		next.ServeHTTP(ww, r)
+		duration := time.Since(start)
+
+		status := ww.Status()
+		if status == 0 {
+			status = http.StatusOK
+		}
+
+		requestID := middleware.GetReqID(r.Context())
+
+		route := chi.RouteContext(r.Context()).RoutePattern()
+		if route == "" {
+			route = r.URL.Path
+		}
+
+		app.logger.Infow(
+			"http request complete",
+			"request_id", requestID,
+			"method", r.Method,
+			"route", route,
+			"status", status,
+			"duration_ms", duration.Milliseconds(),
+			"remote_ip", r.RemoteAddr,
+			"response_bytes", ww.BytesWritten(),
+		)
 	})
 }

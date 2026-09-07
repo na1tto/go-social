@@ -101,7 +101,7 @@ func (app *application) mount() http.Handler {
 
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
+	r.Use(app.RequestLoggerMiddleware)
 	r.Use(middleware.Recoverer)
 	r.Use(app.RateLimitMiddeware)
 
