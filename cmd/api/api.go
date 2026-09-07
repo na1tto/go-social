@@ -19,6 +19,7 @@ import (
 	//"github.com/na1tto/go-social/docs"
 	"github.com/na1tto/go-social/docs"
 	"github.com/na1tto/go-social/internal/auth"
+	"github.com/na1tto/go-social/internal/env"
 	"github.com/na1tto/go-social/internal/mailer"
 	rateLimiter "github.com/na1tto/go-social/internal/ratelimiter"
 	repository "github.com/na1tto/go-social/internal/store"
@@ -106,8 +107,10 @@ func (app *application) mount() http.Handler {
 
 	r.Use(cors.Handler(cors.Options{
 		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
-		// AllowedOrigins: []string{env.GetString("CORS_ALLOWED_ORIGIN", "http://localhost:3000"), "http://localhost:8081", "http://localhost:3000"},
-		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+		AllowedOrigins: []string{
+			env.GetString("FRONTEND_ORIGIN", "http://localhost:5173"),
+		},
+		AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
