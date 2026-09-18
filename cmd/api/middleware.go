@@ -187,13 +187,14 @@ func (app *application) RequestLoggerMiddleware(next http.Handler) http.Handler 
 
 		route := chi.RouteContext(r.Context()).RoutePattern()
 		if route == "" {
-			route = r.URL.Path
+			route = "unmatched"
 		}
 
 		app.logger.Infow(
 			"http request complete",
 			"request_id", requestID,
 			"method", r.Method,
+			"path", r.URL.Path,
 			"route", route,
 			"status", status,
 			"duration_ms", duration.Milliseconds(),
