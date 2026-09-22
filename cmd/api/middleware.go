@@ -203,3 +203,45 @@ func (app *application) RequestLoggerMiddleware(next http.Handler) http.Handler 
 		)
 	})
 }
+
+func (app *application) RequestsMetricsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+
+		app.metrics.HTTPRequestStarted()
+
+		ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
+
+		defer func() {
+			status := ww.Status()
+			if status == 0 {
+				status = http.StatusOK
+			}
+
+			route := chi.RouteContext(r.Context()).RoutePattern()
+			if route == "" {
+				route = "unmatched"
+			}
+
+			duration := time.Since(start)
+
+			app.logger.Infow(
+				"metrics debug",
+				"route", route,
+				"duration", duration.String(),
+				"duration_ns", duration.Nanoseconds(),
+				"duration_seconds", duration.Seconds(),
+			)
+
+			app.metrics.HTTPRequestFinished(
+				r.Method,
+				route,
+				strconv.Itoa(status),
+				time.Since(start),
+			)
+
+		}()
+
+		next.ServeHTTP(ww, r)
+	})
+}

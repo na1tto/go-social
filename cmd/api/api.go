@@ -21,6 +21,7 @@ import (
 	"github.com/na1tto/go-social/internal/auth"
 	"github.com/na1tto/go-social/internal/env"
 	"github.com/na1tto/go-social/internal/mailer"
+	"github.com/na1tto/go-social/internal/observability"
 	rateLimiter "github.com/na1tto/go-social/internal/ratelimiter"
 	repository "github.com/na1tto/go-social/internal/store"
 	"github.com/na1tto/go-social/internal/store/cache"
@@ -28,13 +29,15 @@ import (
 )
 
 type application struct {
-	config        serverConfig
-	store         repository.Storage
-	cacheStorage  cache.Storage
-	logger        *zap.SugaredLogger
-	mailer        mailer.Client
-	authenticator auth.Authenticator
-	rateLimiter   rateLimiter.Limiter
+	config         serverConfig
+	store          repository.Storage
+	cacheStorage   cache.Storage
+	logger         *zap.SugaredLogger
+	mailer         mailer.Client
+	authenticator  auth.Authenticator
+	rateLimiter    rateLimiter.Limiter
+	metrics        *observability.Metrics
+	metricsHandler http.Handler
 }
 
 type serverConfig struct {
@@ -122,10 +125,12 @@ func (app *application) mount() http.Handler {
 	// through ctx.Done() that the request has timed out and further
 	// processing should be stopped.
 	r.Use(middleware.Timeout(60 * time.Second))
+	r.Handle("/metrics", app.metrics.Handler())
 
 	r.Route("/v1", func(r chi.Router) {
 		// wrapping the /health endpoint with basic auth
 		//r.With(app.BasicAuthMiddleware()).Get("/health", app.healthCheckHandler)
+		r.Use(app.RequestsMetricsMiddleware)
 		r.Get("/health", app.healthCheckHandler)
 		r.With(app.BasicAuthMiddleware()).Get("/debug/vars", expvar.Handler().ServeHTTP)
 

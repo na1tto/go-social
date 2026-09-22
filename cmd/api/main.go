@@ -10,6 +10,7 @@ import (
 	"github.com/na1tto/go-social/internal/db"
 	"github.com/na1tto/go-social/internal/env"
 	"github.com/na1tto/go-social/internal/mailer"
+	"github.com/na1tto/go-social/internal/observability"
 	rateLimiter "github.com/na1tto/go-social/internal/ratelimiter"
 	repository "github.com/na1tto/go-social/internal/store"
 	"github.com/na1tto/go-social/internal/store/cache"
@@ -129,14 +130,19 @@ func main() {
 		cfg.rateLimiter.TimeFrame,
 	)
 
+	metrics := observability.NewMetrics()
+	metricsHandler := metrics.Handler()
+
 	app := &application{
-		config:        cfg,
-		store:         store,
-		cacheStorage:  cacheStore,
-		logger:        logger,
-		mailer:        mailTrap,
-		authenticator: jwtAuth,
-		rateLimiter:   rateLimiter,
+		config:         cfg,
+		store:          store,
+		cacheStorage:   cacheStore,
+		logger:         logger,
+		mailer:         mailTrap,
+		authenticator:  jwtAuth,
+		rateLimiter:    rateLimiter,
+		metrics:        metrics,
+		metricsHandler: metricsHandler,
 	}
 
 	// Metrics colected
