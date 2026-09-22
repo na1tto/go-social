@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/na1tto/go-social/internal/auth"
+	"github.com/na1tto/go-social/internal/observability"
 	rateLimiter "github.com/na1tto/go-social/internal/ratelimiter"
 	repository "github.com/na1tto/go-social/internal/store"
 	"github.com/na1tto/go-social/internal/store/cache"
@@ -23,6 +24,7 @@ func newTestApplication(t *testing.T, cfg serverConfig) *application {
 		cfg.rateLimiter.RequestPerTimeFrame,
 		cfg.rateLimiter.TimeFrame,
 	)
+	metrics := observability.NewMetrics()
 
 	return &application{
 		config:        cfg,
@@ -31,6 +33,7 @@ func newTestApplication(t *testing.T, cfg serverConfig) *application {
 		cacheStorage:  mockCacheStore,
 		authenticator: testAuth,
 		rateLimiter:   testRateLimiter,
+		metrics:       metrics,
 	}
 }
 
