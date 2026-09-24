@@ -106,7 +106,6 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.RealIP)
 	r.Use(app.RequestLoggerMiddleware)
 	r.Use(middleware.Recoverer)
-	r.Use(app.RateLimitMiddeware)
 
 	r.Use(cors.Handler(cors.Options{
 		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
@@ -131,6 +130,7 @@ func (app *application) mount() http.Handler {
 		// wrapping the /health endpoint with basic auth
 		//r.With(app.BasicAuthMiddleware()).Get("/health", app.healthCheckHandler)
 		r.Use(app.RequestsMetricsMiddleware)
+		r.Use(app.RateLimitMiddeware)
 		r.Get("/health", app.healthCheckHandler)
 		r.With(app.BasicAuthMiddleware()).Get("/debug/vars", expvar.Handler().ServeHTTP)
 
