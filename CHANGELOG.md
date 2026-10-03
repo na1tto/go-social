@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.3.0](https://github.com/na1tto/go-social/compare/v1.2.3...v1.3.0) (2026-10-03)
+
+
+### Features
+
+* added access logging middleware ([22b1a5f](https://github.com/na1tto/go-social/commit/22b1a5f7a4f19c6a85ac3cd3182d34d56de3b80d))
+* added prometheus client, added metrics middleware alongside metrics endpoint ([486a6dd](https://github.com/na1tto/go-social/commit/486a6dd76fa8a3ad6be1cc591e495028df13a936))
+* added Prometheus server config and container ([a003c63](https://github.com/na1tto/go-social/commit/a003c63f4fe544598ba65c40183b7a7e46063a7a))
+* added status as label and context_state for context canceled handling ([c01bf77](https://github.com/na1tto/go-social/commit/c01bf771f59656295bec646d637b2986647c4d22))
+
+
+### Bug Fixes
+
+* added metrics dependency on test_utils app initialization ([54bfb63](https://github.com/na1tto/go-social/commit/54bfb6329fa6d2dc24f65821b1c2c74ab3aa3a0f))
+
 ## [1.2.3](https://github.com/na1tto/go-social/compare/v1.2.2...v1.2.3) (2026-08-12)
 
 
