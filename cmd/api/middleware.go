@@ -223,16 +223,6 @@ func (app *application) RequestsMetricsMiddleware(next http.Handler) http.Handle
 				route = "unmatched"
 			}
 
-			duration := time.Since(start)
-
-			app.logger.Infow(
-				"metrics debug",
-				"route", route,
-				"duration", duration.String(),
-				"duration_ns", duration.Nanoseconds(),
-				"duration_seconds", duration.Seconds(),
-			)
-
 			app.metrics.HTTPRequestFinished(
 				r.Method,
 				route,
