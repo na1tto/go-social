@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"net/http"
 )
 
@@ -9,6 +11,12 @@ import (
 // informations, like the stacktree from the error
 
 func (app *application) internalServerError(w http.ResponseWriter, r *http.Request, err error) {
+
+	if errors.Is(err, context.Canceled) {
+		app.logger.Infow("http request canceled", "method", r.Method, "path", r.URL.Path, "reason", "request_context_canceled")
+		return
+	}
+
 	app.logger.Errorw("internal error", "method", r.Method, "path", r.URL.Path, "error", err.Error())
 
 	writeJsonError(w, http.StatusInternalServerError, "the server encountered a problem")

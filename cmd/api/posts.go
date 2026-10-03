@@ -270,6 +270,7 @@ func (app *application) postsContextMiddleware(next http.Handler) http.Handler {
 				app.notFoundResponse(w, r, err)
 			default:
 				app.internalServerError(w, r, err)
+				return
 			}
 			return
 		}
