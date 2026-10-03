@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -169,6 +170,13 @@ func (app *application) RateLimitMiddeware(next http.Handler) http.Handler {
 	})
 }
 
+type ContextState string
+
+const (
+	ContextStateActive  ContextState = "active"
+	ContextStateCaceled ContextState = "canceled"
+)
+
 // this logger middleware is the foundation for our observability improvements in the application
 func (app *application) RequestLoggerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -178,8 +186,15 @@ func (app *application) RequestLoggerMiddleware(next http.Handler) http.Handler 
 		next.ServeHTTP(ww, r)
 		duration := time.Since(start)
 
+		contextState := ContextStateActive
+
+		if errors.Is(r.Context().Err(), context.Canceled) {
+			contextState = ContextStateCaceled
+		}
+
 		status := ww.Status()
-		if status == 0 {
+
+		if status == 0 && contextState == ContextStateActive {
 			status = http.StatusOK
 		}
 
@@ -197,6 +212,7 @@ func (app *application) RequestLoggerMiddleware(next http.Handler) http.Handler 
 			"path", r.URL.Path,
 			"route", route,
 			"status", status,
+			"context_state", string(contextState),
 			"duration_ms", duration.Milliseconds(),
 			"remote_ip", r.RemoteAddr,
 			"response_bytes", ww.BytesWritten(),
@@ -214,8 +230,14 @@ func (app *application) RequestsMetricsMiddleware(next http.Handler) http.Handle
 
 		defer func() {
 			status := ww.Status()
+			statusLabel := strconv.Itoa(status)
+
 			if status == 0 {
-				status = http.StatusOK
+				if errors.Is(r.Context().Err(), context.Canceled) {
+					statusLabel = "canceled"
+				} else {
+					statusLabel = strconv.Itoa(http.StatusOK)
+				}
 			}
 
 			route := chi.RouteContext(r.Context()).RoutePattern()
@@ -226,7 +248,7 @@ func (app *application) RequestsMetricsMiddleware(next http.Handler) http.Handle
 			app.metrics.HTTPRequestFinished(
 				r.Method,
 				route,
-				strconv.Itoa(status),
+				statusLabel,
 				time.Since(start),
 			)
 
