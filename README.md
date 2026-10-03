@@ -1,751 +1,301 @@
+```text
+  ____          ____             _       _
+ / ___| ___    / ___|  ___   ___(_) __ _| |
+| |  _ / _ \   \___ \ / _ \ / __| |/ _` | |
+| |_| | (_) |   ___) | (_) | (__| | (_| | |
+ \____|\___/   |____/ \___/ \___|_|\__,_|_|
+```
+
+<div align="center">
+
+![Go](https://img.shields.io/badge/Go-1.25-00ADD8?logo=go&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
+![Prometheus](https://img.shields.io/badge/Prometheus-metrics-E6522C?logo=prometheus&logoColor=white)
+![Swagger](https://img.shields.io/badge/Swagger-API-85EA2D?logo=swagger&logoColor=black)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-web-3178C6?logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-web-646CFF?logo=vite&logoColor=white)
+
+**[Português](README.md) · [English](README.en.md)**
+
+</div>
+
+---
+
 # Go Social
 
-Backend API for a simple social network, focused on user registration, authentication, posts, comments, followers, and a personalized feed.
+API de uma rede social em Go, construída para evoluir a prática de desenvolvimento backend: autenticação, persistência, cache e observabilidade aplicados a um mesmo projeto.
 
-The project is built with Go, PostgreSQL, Chi, JWT authentication, Swagger documentation, optional Redis caching, database migrations, live reload with Air, and account activation by email.
+O núcleo já permite cadastrar usuários, publicar, comentar, seguir pessoas e consultar um feed. O foco atual é tornar esses fluxos mais confiáveis e observar o comportamento da aplicação sob carga.
 
-> Status: this project is under development. Some features are already implemented, but there are known limitations documented at the end of this README.
+> **Em desenvolvimento.** Há um frontend inicial em `web/`, com confirmação de conta e uma página principal provisória. Login, feed e publicação pela interface ainda fazem parte da evolução do projeto.
 
-This repository currently focuses on the backend API. A dedicated frontend application is planned as a separate future project.
+<details>
+<summary><kbd>Funcionalidades implementadas · clique para expandir</kbd></summary>
 
-## Table of Contents
+- Cadastro com bcrypt, ativação por e-mail e autenticação JWT.
+- Permissões por autoria e papéis: `user`, `moderator` e `admin`.
+- Criação, leitura, edição e exclusão de posts; criação de comentários.
+- Seguidores e feed com paginação, ordenação, busca textual e filtro por tags.
+- Cache opcional de usuários autenticados no Redis.
+- Rate limiting em memória, logs estruturados e métricas Prometheus.
+- Migrations SQL, testes com mocks, CI e ambiente de desenvolvimento em container.
 
-- [Tech Stack](#tech-stack)
-- [Features](#features)
-- [Architecture](#architecture)
-- [Project Structure](#project-structure)
-- [Development Options](#development-options)
-- [Development with Dev Container](#development-with-dev-container)
-- [Environment Variables](#environment-variables)
-- [Running Without the Dev Container](#running-without-the-dev-container)
-- [Database, Migrations and Seed](#database-migrations-and-seed)
-- [Swagger Documentation](#swagger-documentation)
-- [Authentication](#authentication)
-- [Main Routes](#main-routes)
-- [Response Format](#response-format)
-- [Data Model](#data-model)
-- [Useful Commands](#useful-commands)
-- [Ports and Services](#ports-and-services)
-- [Known Limitations](#known-limitations)
-- [Suggested Roadmap](#suggested-roadmap)
+</details>
 
-## Tech Stack
+## Conteúdo
 
-- Go `1.25.x`
-  - `go.mod` declares Go `1.25.3`
-  - the Dev Container image uses `golang:1.25.10-bookworm`
-- PostgreSQL `16`
-- Redis `7`
-- Chi router
-- Chi CORS middleware
-- JWT with `github.com/golang-jwt/jwt/v5`
-- Bcrypt via `golang.org/x/crypto`
-- Request validation with `go-playground/validator`
-- Logging with `go.uber.org/zap`
-- Swagger/OpenAPI with `swaggo`
-- Database migrations with `golang-migrate`
-- Live reload with `air`
-- Email delivery through Mailtrap, with structure also prepared for SendGrid
-- Docker Compose
-- Dev Container support for reproducible development environments
+- [01 · Início rápido](#01--início-rápido)
+- [02 · Tecnologias e arquitetura](#02--tecnologias-e-arquitetura)
+- [03 · Configuração](#03--configuração)
+- [04 · Uso da API](#04--uso-da-api)
+- [05 · Observabilidade e decisões](#05--observabilidade-e-decisões)
+- [06 · Limitações e próximos passos](#06--limitações-e-próximos-passos)
+- [07 · Desenvolvimento](#07--desenvolvimento)
 
-## Features
+---
 
-- User registration with hashed passwords.
-- JWT token generation.
-- Account activation using an email token.
-- Health check protected with Basic Auth.
-- Create, read, update, and delete posts.
-- Create comments on posts.
-- Follow and unfollow users.
-- Personalized feed with pagination, sorting, tag filtering, and text search.
-- Basic role-based permission model: `user`, `moderator`, and `admin`.
-- Optional Redis cache for authenticated user lookups.
-- Swagger UI for API inspection.
-- Dev Container setup for development across different machines.
-- Live reload workflow through Air.
+## 01 · Início rápido
 
-## Architecture
+O caminho recomendado é o **Dev Container**. Requer Git, Docker com Compose e um editor compatível, como VS Code com Dev Containers ou Zed. No Windows, use Docker Desktop com WSL 2.
 
-The backend follows a layered structure:
+Na raiz do projeto:
 
-```text
-HTTP request
-   ↓
-cmd/api handlers
-   ↓
-middlewares, validation and request parsing
-   ↓
-internal/store
-   ↓
-PostgreSQL
-```
-
-Main components:
-
-- `cmd/api`: HTTP server, routes, handlers, middlewares, authentication, and JSON responses.
-- `internal/store`: data access layer.
-- `internal/store/cache`: Redis cache layer.
-- `internal/db`: database connection and seed logic.
-- `internal/auth`: JWT generation and validation.
-- `internal/mailer`: email delivery.
-- `cmd/migrate/migrations`: SQL migration files.
-- `docs`: generated Swagger documentation.
-- `.devcontainer`: containerized development environment.
-- `DEVCONTAINER.md`: complete guide for using the project with Dev Containers, VS Code, and Zed.
-
-## Project Structure
-
-```text
-go-social/
-├── .devcontainer/
-│   ├── Dockerfile
-│   ├── devcontainer.json
-│   ├── docker-compose.devcontainer.yml
-│   └── post-create.sh
-├── cmd/
-│   ├── api/
-│   │   ├── api.go
-│   │   ├── api_test.go
-│   │   ├── auth.go
-│   │   ├── errors.go
-│   │   ├── feed.go
-│   │   ├── health.go
-│   │   ├── json.go
-│   │   ├── main.go
-│   │   ├── middleware.go
-│   │   ├── posts.go
-│   │   ├── test_utils.go
-│   │   └── users.go
-│   │   ├── users_test.go.go
-│   └── migrate/
-│       ├── migrations/
-│       └── seed/
-├── docs/
-├── internal/
-│   ├── auth/
-│   ├── db/
-│   ├── env/
-│   ├── mailer/
-│   └── store/
-├── .air.toml
-├── .env.example
-├── DEVCONTAINER.md
-├── docker-compose.yml
-├── Makefile
-├── go.mod
-├── go.sum
-└── README.md
-```
-
-## Development Options
-
-There are two supported development workflows.
-
-### Recommended workflow
-
-Use the Dev Container.
-
-This gives every developer the same environment with Go, Air, Swag, Migrate, PostgreSQL client tools, Redis access, module caches, and build caches already configured.
-
-### Alternative workflow
-
-Run everything directly on the host machine.
-
-This requires installing Go, `air`, `swag`, `migrate`, Make, Docker, and all required tooling manually.
-
-## Development with Dev Container
-
-This repository includes a Dev Container setup for a reproducible development environment across different machines and editors.
-
-The Dev Container configuration is located under:
-
-```text
-.devcontainer/
-├── Dockerfile
-├── devcontainer.json
-├── docker-compose.devcontainer.yml
-└── post-create.sh
-```
-
-It provides the backend development environment with Go, Air, Swag, Migrate, PostgreSQL, Redis, Redis Commander, Go module cache, and Go build cache.
-
-For the complete setup and usage guide, including instructions for **Zed Editor**, **VS Code**, environment variables, migrations, seed, Swagger generation, Git workflow, ports, and troubleshooting, see:
-
- [DEVCONTAINER.md]( DEVCONTAINER.md)
-
-## Environment Variables
-
-Create a `.env` file from `.env.example`:
-
-```bash
+```sh
 cp .env.example .env
 ```
 
-Current `.env.example` is optimized for the Dev Container workflow:
+No PowerShell, use `Copy-Item .env.example .env`. Abra o projeto no Dev Container e execute no terminal dele:
 
-```env
-ADDR=:8080
-ENV=development
-EXTERNAL_URL=http://localhost:8080
-CORS_ALLOWED_ORIGIN=http://localhost:5174
-
-DB_USER=admin
-DB_PASSWORD=adminpassword
-POSTGRES_DB=gosocial
-POSTGRES_PORT=15432
-
-DB_ADDR=postgres://admin:adminpassword@db:5432/gosocial?sslmode=disable
-
-FROM_EMAIL=no-reply@example.com
-
-SENDGRID_API_KEY=
-
-MAILTRAP_API_KEY=
-MAILTRAP_USERNAME=
-MAILTRAP_PASSWORD=
-
-REDIS_ENABLED=true
-REDIS_ADDR=redis:6379
-REDIS_PORT=16379
-
-RATELIMITER_REQUESTS_COUNT=20
-RATE_LIMITER_ENABLED=true
-```
-
-Important distinction:
-
-```text
-Inside the Dev Container:
-PostgreSQL -> db:5432
-Redis      -> redis:6379
-
-From the host machine:
-PostgreSQL -> localhost:15432
-Redis      -> localhost:16379
-Redis UI   -> http://localhost:8082
-API        -> http://localhost:8080
-```
-
-Optional variables supported by the application include:
-
-```env
-AUTH_BASIC_USER=admin
-AUTH_BASIC_PASS=admin
-AUTH_TOKEN_SECRET=change-me-in-development
-FRONTEND_URL=http://localhost:5173
-DB_MAX_OPEN_CONNS=30
-DB_MAX_IDLE_CONNS=30
-DB_MAX_IDLE_TIME=15m
-REDIS_PW=
-REDIS_DB=0
-```
-
-Notes:
-
-- `.env` is ignored by Git and must not be committed.
-- `FRONTEND_URL` is currently used to build account activation links. The frontend itself is planned as a future separate project.
-- User registration triggers email delivery. Configure Mailtrap to test the full registration and activation flow.
-- If email credentials are not configured, the registration flow may fail when trying to send the activation email.
-
-## Running Without the Dev Container
-
-This workflow is available, but the Dev Container is recommended.
-
-### 1. Install required tools
-
-Install on the host machine:
-
-- Go compatible with this project.
-- Docker and Docker Compose.
-- GNU Make.
-- `air`.
-- `swag`.
-- `golang-migrate`.
-
-Install tools manually:
-
-```bash
-go install github.com/air-verse/air@v1.65.1
-go install github.com/swaggo/swag/cmd/swag@v1.16.6
-go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.19.0
-```
-
-### 2. Start infrastructure
-
-```bash
-docker compose up -d
-```
-
-### 3. Configure host database URL
-
-When running commands directly from the host, use the host-mapped PostgreSQL port:
-
-```bash
-export DB_ADDR="postgres://admin:adminpassword@localhost:15432/gosocial?sslmode=disable"
-```
-
-On Windows PowerShell:
-
-```powershell
-$env:DB_ADDR = "postgres://admin:adminpassword@localhost:15432/gosocial?sslmode=disable"
-```
-
-### 4. Run setup and API
-
-```bash
+```sh
 make migrate-up
-make seed
+make dev
+```
+
+A API fica em **http://localhost:8080**. Verifique com `curl http://localhost:8080/v1/health`; essa rota é pública atualmente. O container fornece Go, Air, Swag e Migrate; as migrations são executadas manualmente.
+
+Para testar cadastro e ativação, configure o Mailtrap conforme a [seção de configuração](#03--configuração). O guia [DEVCONTAINER.md](DEVCONTAINER.md) detalha abertura no editor, ferramentas e solução de problemas.
+
+<details>
+<summary><kbd>Executar diretamente na máquina · alternativa</kbd></summary>
+
+Instale Go compatível com [go.mod](go.mod), Docker Compose e o CLI Migrate com suporte a PostgreSQL. Make e Air são necessários para os atalhos de desenvolvimento.
+
+No `.env`, troque os endereços de rede do Docker pelos publicados na máquina:
+
+```dotenv
+DB_ADDR=postgres://admin:adminpassword@localhost:15432/gosocial?sslmode=disable
+REDIS_ADDR=localhost:16379
+```
+
+Depois:
+
+```sh
+docker compose up -d
+make migrate-up
 go run ./cmd/api
 ```
 
-For live reload:
+A API carrega `.env` automaticamente; o Makefile também lê esse arquivo. O Compose da raiz sobe a infraestrutura, mas não inicia a API.
 
-```bash
-make dev
-```
+</details>
 
-## Database, Migrations and Seed
+---
 
-Migration files are stored in:
+## 02 · Tecnologias e arquitetura
 
-```text
-cmd/migrate/migrations
-```
+| Camada | Ferramentas e responsabilidade |
+|---|---|
+| API | Go · Chi · go-playground/validator |
+| Persistência | PostgreSQL 16 · SQL com `database/sql` e `lib/pq` · golang-migrate |
+| Autenticação | JWT · bcrypt · papéis e verificação de autoria |
+| Cache e limite de requisições | Redis 7 para usuários · janela fixa em memória para rate limiting |
+| E-mail | Mailtrap SMTP sandbox ativo · implementação SendGrid disponível, sem uso no bootstrap |
+| Observabilidade | Zap · Prometheus · expvar |
+| Interface inicial | React 19 · TypeScript · Vite · React Router |
+| Desenvolvimento | Docker Compose · Dev Containers · Air · Swag · GitHub Actions |
 
-Create a new migration:
-
-```bash
-make migration name=create_users
-```
-
-Apply migrations:
-
-```bash
-make migrate-up
-```
-
-Rollback one migration:
-
-```bash
-make migrate-down
-```
-
-Drop the schema:
-
-```bash
-make migrate-drop
-```
-
-Reset the local database:
-
-```bash
-make reset-db
-```
-
-Run seed:
-
-```bash
-make seed
-```
-
-The current seed generates approximately:
-
-- 100 users.
-- 200 posts.
-- 500 comments.
-
-The default password for seeded users is:
+A API é um único serviço Go organizado em camadas. Middlewares tratam autenticação e aspectos comuns das requisições; handlers validam a entrada e coordenam operações; `internal/store` concentra o acesso ao banco. Ainda não há uma camada de serviços de negócio separada.
 
 ```text
-123123
+Cliente HTTP / web (React)
+          |
+          v
+  Chi + middlewares
+          |
+          v
+  Handlers (cmd/api) ------> Mailtrap (ativação)
+          |
+          +---------------> Redis (cache de usuários)
+          |
+          v
+  Store (internal/store)
+          |
+          v
+      PostgreSQL
+
+  API ----> logs Zap
+  Prometheus ----> API /metrics
 ```
 
-## Swagger Documentation
+O modelo relaciona usuários e papéis, convites de ativação, posts, comentários e seguidores. Posts têm versão para controle de atualização concorrente; o banco usa `CITEXT`, `pg_trgm` e índices para busca e tags.
 
-Generated Swagger files are located in:
+| Diretório | Onde procurar |
+|---|---|
+| `cmd/api/` | Rotas, handlers, middlewares e respostas HTTP |
+| `internal/store/` | Consultas SQL, interfaces e cache |
+| `internal/auth/`, `internal/mailer/` | JWT e envio de e-mail |
+| `internal/observability/`, `internal/ratelimiter/` | Métricas e controle de requisições |
+| `cmd/migrate/`, `internal/db/` | Migrations, conexão e seed |
+| `web/` | Interface inicial de confirmação de conta |
+| `docs/` | Swagger gerado e decisões em `docs/adr/` |
+| `.devcontainer/`, `.github/workflows/` | Ambiente de desenvolvimento e CI |
 
-```text
-docs/
+---
+
+## 03 · Configuração
+
+Use [.env.example](.env.example) como ponto de partida. Ele foi preparado para a rede do Dev Container; `.env` é ignorado pelo Git.
+
+| Variável | Uso atual |
+|---|---|
+| `ADDR` / `ENV` | Endereço HTTP (`:8080`) e ambiente |
+| `DB_ADDR` | PostgreSQL: `db:5432` no container ou `localhost:15432` na máquina |
+| `DB_USER`, `DB_PASSWORD`, `POSTGRES_DB` | Credenciais e banco criados pelo Compose |
+| `REDIS_ENABLED` / `REDIS_ADDR` | Cache: `redis:6379` no container ou `localhost:16379` na máquina |
+| `AUTH_TOKEN_SECRET` | Segredo JWT; adicione um valor próprio ao `.env` |
+| `AUTH_BASIC_USER` / `AUTH_BASIC_PASS` | Protegem `/v1/debug/vars`; padrão local `admin:admin` |
+| `FROM_EMAIL` / `MAILTRAP_*` | Remetente e configuração de e-mail |
+| `FRONTEND_URL` | Base dos links de ativação; padrão `http://localhost:5173` |
+| `RATE_LIMITER_ENABLED` / `RATELIMITER_REQUESTS_COUNT` | Limite local; padrão de 20 requisições por janela de 3 segundos |
+| `EXTERNAL_URL` | Alimenta o host do Swagger; integração ainda requer revisão |
+
+**E-mail:** preencha `FROM_EMAIL`, `MAILTRAP_API_KEY`, `MAILTRAP_USERNAME` e `MAILTRAP_PASSWORD`. O construtor exige a API key, mas o envio atual usa usuário e senha do SMTP sandbox. Se o envio falhar, o cadastro tenta desfazer a criação do usuário.
+
+**CORS:** `CORS_ALLOWED_ORIGIN` está no exemplo, mas o código lê `FRONTEND_ORIGIN` e atualmente aceita qualquer origem via callback. A lista de métodos também não inclui `PATCH`. A correção está no roadmap.
+
+**Serviços locais:** API `:8080` · PostgreSQL `:15432` · Redis `:16379` · Redis Commander `:8082` · Prometheus `:9090`.
+
+<details>
+<summary><kbd>Interface de ativação · opcional</kbd></summary>
+
+Com Node compatível com [web/.nvmrc](web/.nvmrc) instalado, execute em outro terminal:
+
+```sh
+cd web
+npm ci
+npm run dev
 ```
 
-Regenerate the documentation:
+A interface chama `http://localhost:8080/v1` por padrão. Para trocar a API, configure `VITE_API_URL` no ambiente do Vite. Mantenha `FRONTEND_URL` alinhada à porta exibida pelo frontend; o link do e-mail abre `/confirm/:token`.
 
-```bash
-make gen-docs
-```
+</details>
 
-With the API running, open:
+---
 
-```text
-http://localhost:8080/v1/swagger/index.html
-```
+## 04 · Uso da API
 
-If the Swagger UI opens but does not load the schema, check `EXTERNAL_URL`, `ADDR`, and the generated files under `docs/`.
+Base local: `http://localhost:8080/v1`. O fluxo é **cadastro → ativação → emissão de JWT → rotas autenticadas**.
 
-## Authentication
-
-The project currently uses three main authentication and authorization flows.
-
-### 1. Basic Auth for the health check
-
-`GET /v1/health` requires Basic Auth.
-
-```bash
-curl -u admin:admin http://localhost:8080/v1/health
-```
-
-Credentials are configured through:
-
-```env
-AUTH_BASIC_USER=admin
-AUTH_BASIC_PASS=admin
-```
-
-If these variables are not set, the application defaults to:
-
-```text
-admin:admin
-```
-
-### 2. User registration and account activation
-
-Create a user:
-
-```http
-POST /v1/authentication/user
-Content-Type: application/json
-```
-
-```json
-{
-  "username": "luiz",
-  "email": "luiz@example.com",
-  "password": "123123"
-}
-```
-
-The backend:
-
-1. hashes the password with bcrypt;
-2. creates the user;
-3. generates an activation token;
-4. stores the token hash in the database;
-5. sends an activation link by email;
-6. returns the user and the plain activation token in the response.
-
-Activate the user:
-
-```http
-PUT /v1/users/activate/{token}
-```
-
-### 3. JWT Bearer Token
-
-Generate a token:
-
-```http
-POST /v1/authentication/token
-Content-Type: application/json
-```
-
-```json
-{
-  "email": "luiz@example.com",
-  "password": "123123"
-}
-```
-
-Use the token in protected routes:
-
-```http
-Authorization: Bearer <token>
-```
-
-## Main Routes
-
-Base URL:
-
-```text
-http://localhost:8080/v1
-```
-
-### Health
-
-| Method | Route | Authentication | Description |
-|---|---|---|---|
-| `GET` | `/health` | Basic Auth | Returns API status, environment, and version. |
-
-### Authentication
-
-| Method | Route | Authentication | Description |
-|---|---|---|---|
-| `POST` | `/authentication/user` | Public | Registers a user and starts the activation flow. |
-| `POST` | `/authentication/token` | Public | Generates a JWT for an active user. |
-
-### Users
-
-| Method | Route | Authentication | Description |
-|---|---|---|---|
-| `PUT` | `/users/activate/{token}` | Public | Activates a user using an activation token. |
-| `GET` | `/users/{userId}` | Bearer Token | Fetches an active user profile. |
-| `PUT` | `/users/{userId}/follow` | Bearer Token | Follows a user. |
-| `PUT` | `/users/{userId}/unfollow` | Bearer Token | Unfollows a user. |
-| `GET` | `/users/feed` | Bearer Token | Returns the paginated feed for the authenticated user. |
-
-Feed query parameters:
-
-| Parameter | Rule | Description |
+| Método | Rota relativa a `/v1` | Acesso / finalidade |
 |---|---|---|
-| `limit` | `1..20` | Maximum number of posts. |
-| `offset` | `>= 0` | Pagination offset. |
-| `sort` | `asc` or `desc` | Sorts by creation date. |
-| `tags` | up to 3 comma-separated tags | Filters by tags. |
-| `search` | up to 100 characters | Searches in title or content. |
-| `since` | `YYYY-MM-DD HH:MM:SS` | Parsed, but not currently applied in the SQL query. |
-| `until` | `YYYY-MM-DD HH:MM:SS` | Parsed, but not currently applied in the SQL query. |
+| `POST` | `/authentication/user` | Público · recebe `username`, `email` e `password` |
+| `PUT` | `/users/activate/{token}` | Público · ativa a conta |
+| `POST` | `/authentication/token` | Público · recebe `email` e `password`, retorna JWT |
+| `GET` | `/users/{userId}/` | JWT · consulta usuário |
+| `PUT` | `/users/{userId}/follow` ou `/users/{userId}/unfollow` | JWT · segue ou deixa de seguir |
+| `GET` | `/users/feed` | JWT · feed paginado |
+| `POST` | `/posts/` | JWT · cria post com `title`, `content` e `tags` |
+| `GET` / `POST` | `/posts/{postId}/` | JWT · lê post com comentários / comenta com `content` |
+| `PATCH` / `DELETE` | `/posts/{postId}/` | JWT + autoria ou papel · edita / exclui |
 
-Example:
+Envie `Authorization: Bearer <token>` nas rotas protegidas. O autor pode editar e excluir seus posts; moderadores podem editar posts de outros usuários e administradores também podem excluí-los.
 
-```bash
-curl "http://localhost:8080/v1/users/feed?limit=10&offset=0&sort=desc&tags=GoLang,AI&search=testing" \
-  -H "Authorization: Bearer <token>"
+O feed aceita `limit` (1–20), `offset` (≥ 0), `sort` (`asc`/`desc`), `tags` (até 3, separadas por vírgula) e `search` (até 100 caracteres). `since` e `until` são interpretados, mas ainda não filtram a consulta SQL.
+
+Respostas JSON usam `{"data": ...}` em sucesso e `{"error": "..."}` em falhas; exclusões podem retornar `204` sem corpo.
+
+**Referência:** [Swagger YAML](docs/swagger.yaml) e [Swagger JSON](docs/swagger.json). A UI fica em `/v1/swagger/index.html`, mas a URL do schema montada pela aplicação ainda precisa de correção; consulte os arquivos se ela não carregar.
+
+---
+
+## 05 · Observabilidade e decisões
+
+Os logs incluem `request_id`, método, rota, status, duração e estado do contexto. As métricas das rotas `/v1` registram volume, duração e requisições em andamento.
+
+| Endpoint | Acesso atual |
+|---|---|
+| `GET /v1/health` | Público · estado, ambiente e versão |
+| `GET /metrics` | Público · coleta Prometheus |
+| `GET /v1/debug/vars` | Basic Auth · runtime e pool de conexões |
+
+O [Prometheus local](internal/observability/prometheus/prometheus.yml) consulta `host.docker.internal:8080` a cada 15 segundos. Seu painel fica em **http://localhost:9090**.
+
+### ADR 0001 · Cancelamentos HTTP
+
+O [ADR 0001 — Tratamento de cancelamentos de requisições HTTP](docs/adr/0001-http-request-cancellation.md), aceito em **03/10/2026**, registra a decisão motivada pelos testes de carga: cancelamentos reconhecidos não devem virar erros internos nem sucessos artificiais.
+
+A decisão prevê log em nível Info sem resposta JSON, correlação por `request_id` e preservação de status já escrito. Sem status escrito e com contexto cancelado, os logs usam `0` e as métricas usam `status="canceled"`. Esse `0` existe apenas na observabilidade; não é um código HTTP enviado ao cliente. Expiração de prazo fica fora do escopo do ADR.
+
+**Alinhamento pendente:** em `errors.go`, a condição atual verifica apenas `errors.Is(err, context.Canceled)`; falta exigir também o cancelamento do contexto HTTP, conforme a decisão documentada.
+
+---
+
+## 06 · Limitações e próximos passos
+
+O projeto já tem testes com mocks, CI, rate limiting e Dockerfile de runtime. A próxima etapa é ampliar e consolidar esses recursos. A tabela organiza pendências verificadas no código e propostas de evolução, sem compromisso de prazo.
+
+| Limitação atual | Próximo passo proposto |
+|---|---|
+| Cadastro depende do Mailtrap sandbox síncrono; erro de inicialização do mailer é ignorado | Validar o bootstrap e evoluir envio, retentativas e recuperação do cadastro |
+| Token de ativação também é devolvido no JSON; não há refresh token | Revisar o contrato de ativação e evoluir o ciclo de autenticação |
+| CORS permissivo, configuração divergente e ausência de `PATCH` | Unificar configuração, restringir origens e cobrir os métodos usados |
+| Filtros temporais do feed não chegam ao SQL | Implementar `since`/`until` e validar com testes de integração |
+| Cache habilitado propaga falhas do Redis | Definir comportamento de contingência e invalidação |
+| Rate limiter vive em memória por processo e não remove entradas antigas | Definir limpeza e estratégia para múltiplas instâncias |
+| Swagger tem problemas na URL do schema e nos comandos de geração | Alinhar rotas, metadados e geração entre ambientes |
+| Tratamento de cancelamentos ainda diverge do ADR | Completar a condição e ampliar testes de cancelamento e timeout |
+| Frontend cobre apenas a confirmação de conta | Evoluir cadastro, login, feed e publicação |
+| Dockerfile usa `cmd/api/*.go`, incluindo arquivos de teste no build | Corrigir e validar a imagem; ampliar testes de integração e validação de deploy |
+
+Antes de publicar uma instância, também é necessário substituir os segredos de exemplo e definir a exposição de `/metrics` e das rotas de diagnóstico. A configuração atual é voltada ao desenvolvimento.
+
+---
+
+## 07 · Desenvolvimento
+
+No Dev Container, com `.env` criado:
+
+```sh
+make test                            # testes Go
+go vet ./...                         # análise estática
+make migrate-up                      # aplica migrations
+make migration name=nome_da_mudanca   # cria migration SQL
+make dev                             # API com live reload
 ```
 
-### Posts
+O [workflow de auditoria](.github/workflows/audit.yaml) já executa verificação de dependências, build, `go vet`, Staticcheck e testes com `-race`. O [CHANGELOG](CHANGELOG.md) registra as releases; os [ADRs](docs/adr/) explicam decisões de arquitetura.
 
-| Method | Route | Authentication | Description |
-|---|---|---|---|
-| `POST` | `/posts/` | Bearer Token | Creates a post. |
-| `GET` | `/posts/{postId}/` | Bearer Token | Fetches a post by ID, including comments. |
-| `POST` | `/posts/{postId}/` | Bearer Token | Creates a comment on the post as the authenticated user. |
-| `PATCH` | `/posts/{postId}/` | Bearer Token + ownership/role | Updates the title and/or content. |
-| `DELETE` | `/posts/{postId}/` | Bearer Token + ownership/role | Deletes the post. |
+<details>
+<summary><kbd>Banco de demonstração e geração de documentação</kbd></summary>
 
-Create a post:
+`make seed` gera 100 usuários, 200 posts e 500 comentários, com senha de demonstração `123123`. O executável de seed lê `DB_ADDR` do ambiente: fora do Dev Container, exporte essa variável antes de executá-lo, pois o seed não carrega `.env` por conta própria.
 
-```json
-{
-  "title": "First post",
-  "content": "Post content",
-  "tags": ["GoLang", "API"]
-}
+`make migrate-down` reverte uma migration. `make reset-db` apaga o schema, recria e popula o banco; use somente em um banco descartável.
+
+O Makefile oferece `make gen-docs` e `make gen-docs-win`. O primeiro ainda combina diretório de busca e caminho do arquivo principal de forma inconsistente. Uma alternativa direta, na raiz, é:
+
+```sh
+swag init -g ./api/main.go -d cmd,internal --parseDependency --parseInternal
+swag fmt
 ```
 
-Update a post:
+Revise os arquivos gerados antes de incluí-los em um commit.
 
-```json
-{
-  "title": "Updated title",
-  "content": "Updated content"
-}
-```
+</details>
 
-Create a comment:
+---
 
-```json
-{
-  "content": "Example comment"
-}
-```
-
-## Response Format
-
-Successful responses are wrapped in `data`:
-
-```json
-{
-  "data": {}
-}
-```
-
-Error responses are wrapped in `error`:
-
-```json
-{
-  "error": "error message"
-}
-```
-
-HTTP status codes used by the project:
-
-- `200 OK`
-- `201 Created`
-- `204 No Content`
-- `400 Bad Request`
-- `401 Unauthorized`
-- `403 Forbidden`
-- `404 Not Found`
-- `409 Conflict`
-- `500 Internal Server Error`
-
-## Data Model
-
-Main tables:
-
-### `users`
-
-- `id`
-- `email`
-- `username`
-- `password`
-- `created_at`
-- `is_active`
-- `role_id`
-
-### `roles`
-
-- `id`
-- `name`
-- `level`
-- `description`
-
-Initial roles:
-
-| Role | Level | General permission |
-|---|---:|---|
-| `user` | 1 | Can create posts and comments. |
-| `moderator` | 2 | Can update posts from other users. |
-| `admin` | 3 | Can update and delete posts from other users. |
-
-### `user_invitations`
-
-- `token`
-- `user_id`
-- `expiry`
-
-### `posts`
-
-- `id`
-- `title`
-- `content`
-- `user_id`
-- `tags`
-- `created_at`
-- `updated_at`
-- `version`
-
-### `comments`
-
-- `id`
-- `post_id`
-- `user_id`
-- `content`
-- `created_at`
-
-### `followers`
-
-- `user_id`
-- `follower_id`
-- `created_at`
-
-Relevant indexes and extensions:
-
-- `CITEXT` for case-insensitive emails.
-- `pg_trgm` for text search.
-- GIN indexes for text search and tag filtering.
-- Relationship indexes for users, posts, and comments.
-
-## Useful Commands
-
-### Development commands
-
-```bash
-# show tool versions
-make tools
-
-# download Go dependencies
-make download
-
-# tidy Go modules
-make tidy
-
-# run tests
-make test
-
-# run API with live reload
-make dev
-
-# run initial setup
-make setup
-```
-
-### Database commands
-
-```bash
-# apply migrations
-make migrate-up
-
-# rollback one migration
-make migrate-down
-
-# drop schema
-make migrate-drop
-
-# run seed
-make seed
-
-# reset local database
-make reset-db
-
-# create a migration
-make migration name=create_users
-```
-
-### Swagger commands
-
-```bash
-make gen-docs
-```
-
-### Docker commands
-
-```bash
-# start infrastructure
-docker compose up -d
-
-# stop infrastructure
-docker compose down
-
-# stop infrastructure and remove volumes
-docker compose down --volumes
-```
-
-### Manual API run without Air
-
-```bash
-go build -buildvcs=false -o ./bin/main ./cmd/api
-./bin/main
-```
-
-## Ports and Services
-
-| Service | Inside Docker network | Host access | Description |
-|---|---:|---:|---|
-| API | `app:8080` | `localhost:8080` | Go backend API |
-| PostgreSQL | `db:5432` | `localhost:15432` | Main database |
-| Redis | `redis:6379` | `localhost:16379` | Optional cache |
-| Redis Commander | `redis-commander:8081` | `localhost:8082` | Redis web UI |
-
-## Known Limitations
-
-- The project is still under development.
-- The repository currently focuses on the backend API. A dedicated frontend application is planned as a future separate project.
-- User registration depends on email delivery; without Mailtrap configured, the full registration and activation flow may fail.
-- `since` and `until` are parsed in the feed query but are not currently applied in the SQL query.
-- The Swagger schema URL may require adjustments to `ADDR` or `EXTERNAL_URL`, depending on how the API is executed.
-- The current `Makefile` contains a duplicated `gen-docs` target name, including a Windows-oriented recipe. This should be reviewed to avoid ambiguity between Linux/macOS and Windows documentation generation workflows.
-- When running directly on the host, `.env.example` cannot be used unchanged for database access because it targets Docker service names such as `db` and `redis`. Use `localhost:15432` and `localhost:16379` from the host.
-
-## Suggested Roadmap
-
-- Apply `since` and `until` filters to the feed SQL query.
-- Review and split Linux/macOS and Windows Swagger generation commands in the `Makefile`.
-- Add unit and integration tests.
-- Improve mailer bootstrap error handling.
-- Add refresh token support.
-- Create a separate frontend project for login, registration, feed, and post creation.
-- Add a CI pipeline.
-- Review and standardize Swagger annotations.
-- Add rate limiting.
-- Add production-oriented Docker image separate from the Dev Container.
+**Documentação revisada:** 03/10/2026 · **Idiomas:** [Português](README.md) / [English](README.en.md)
