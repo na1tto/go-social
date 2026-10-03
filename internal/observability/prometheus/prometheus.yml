@@ -1,0 +1,14 @@
+# this file handles how Prometheus scrape and with what frequency
+
+global:
+  scrape_interval: 15s # try scrape every 15 seconds
+  scrape_timeout: 5s # 5 seconds limit to complete a scrape
+
+scrape_configs:
+  - job_name: go-social # identifies the target group as go-social
+    metrics_path: /metrics # metrics HTTP path
+
+    # declares targets explicitlu
+    static_configs:
+      - targets: # docker service and internal API port
+          - host.docker.internal:8080

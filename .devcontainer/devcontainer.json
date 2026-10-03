@@ -9,20 +9,23 @@
 	"remoteUser": "app",
 	"updateRemoteUserUID": true,
 
-	"runServices": ["app", "db", "redis", "redis-commander"],
+  "runServices": ["app", "db", "redis", "redis-commander", "prometheus"],
 
 	"shutdownAction": "stopCompose",
 
-	"forwardPorts": [8080, 8081],
+  "forwardPorts": [8080, 8081, 9090],
 
-	"portsAttributes": {
-		"8080": {
-			"label": "API",
-		},
-		"8081": {
-			"label": "App secondary port",
-		},
-	},
+  "portsAttributes": {
+    "8080": {
+      "label": "API",
+    },
+    "8081": {
+      "label": "App secondary port",
+    },
+    "9090": {
+      "label": "Prometheus",
+    },
+  },
 
 	"postCreateCommand": "bash .devcontainer/post-create.sh",
 	"waitFor": "postCreateCommand",
